@@ -1,0 +1,126 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.landing {
+  width: 100%;
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #dff5ea, #e6f0ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.hero-content h1 {
+  font-size: 3.2rem;
+  color: #0a5c4a;
+}
+
+.hero-content p {
+  font-size: 1.3rem;
+  max-width: 750px;
+  margin: 20px auto;
+}
+
+.hero-buttons {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+
+/* BUTTONS */
+.btn {
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+}
+
+.primary {
+  background: #0a5c4a;
+  color: white;
+}
+
+.outline {
+  background: transparent;
+  border: 2px solid #0a5c4a;
+  color: #0a5c4a;
+}
+
+/* SECTIONS */
+.about, .features, .workflow, .cta {
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.about p {
+  max-width: 800px;
+  margin: auto;
+  font-size: 1.1rem;
+}
+
+/* FEATURES */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+  margin-top: 40px;
+}
+
+.feature-card {
+  background: #f4fbf8;
+  padding: 25px;
+  border-radius: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* WORKFLOW */
+.workflow-steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* TESTIMONIAL */
+.testimonial {
+  background: #0a5c4a;
+  color: white;
+  padding: 70px 20px;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+/* CTA */
+.cta {
+  background: #eef7f4;
+}
+
+.big {
+  font-size: 1.2rem;
+  margin-top: 20px;
+}
+
+/* FOOTER */
+footer {
+  background: #f1f1f1;
+  text-align: center;
+  padding: 25px;
+  font-size: 0.9rem;
+}

@@ -1,7 +1,7 @@
-import Login from "./pages/login";
+import Landing from "./pages/Landing";
 
 function App() {
-  return <Login />;
+  return <Landing />;
 }
 
 export default App;
