@@ -19,11 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Eye, Edit, Trash2, Users, Heart } from "lucide-react";
 import { members, Member } from "@/data/members";
 import { getMemberTotalSavings } from "@/data/savings";
 import { getLoansByMember } from "@/data/loans";
 import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Members() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,21 +47,26 @@ export default function Members() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search members..."
-            className="pl-10 w-64"
+            className="pl-10 w-64 border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="btn-gradient text-white border-0">
               <Plus className="w-4 h-4 mr-2" />
               Add Member
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="border-[#C2185B]/10">
             <DialogHeader>
-              <DialogTitle>Add New Member</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center">
+                  <Users className="w-4 h-4 text-white" />
+                </div>
+                Add New Member
+              </DialogTitle>
             </DialogHeader>
             <AddMemberForm onClose={() => setIsAddOpen(false)} />
           </DialogContent>
@@ -68,59 +74,61 @@ export default function Members() {
       </PageHeader>
 
       {/* Members Table */}
-      <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Village</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Income</TableHead>
-                <TableHead>Join Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMembers.map((member) => (
-                <TableRow key={member.member_id} className="table-row-hover">
-                  <TableCell className="font-mono text-sm">{member.member_id}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
-                        {member.name.charAt(0)}
-                      </div>
-                      <span className="font-medium">{member.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{member.age}</TableCell>
-                  <TableCell>{member.village}</TableCell>
-                  <TableCell>{member.phone}</TableCell>
-                  <TableCell>₹{member.income.toLocaleString()}</TableCell>
-                  <TableCell>{new Date(member.join_date).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link to={`/members/${member.member_id}`}>
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+      <Card className="border-[#C2185B]/10 shadow-soft">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-[#C2185B]/10 bg-gradient-to-r from-[#C2185B]/5 to-transparent">
+                  <TableHead className="text-[#C2185B] font-semibold">Member ID</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold">Name</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold">Age</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold">Village</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold">Phone</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold">Income</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold">Join Date</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+              </TableHeader>
+              <TableBody>
+                {filteredMembers.map((member) => (
+                  <TableRow key={member.member_id} className="border-[#C2185B]/5 hover:bg-[#C2185B]/5 transition-colors">
+                    <TableCell className="font-mono text-sm text-muted-foreground">{member.member_id}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center text-white font-semibold text-sm">
+                          {member.name.charAt(0)}
+                        </div>
+                        <span className="font-semibold text-foreground">{member.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{member.age}</TableCell>
+                    <TableCell className="text-muted-foreground">{member.village}</TableCell>
+                    <TableCell>{member.phone}</TableCell>
+                    <TableCell className="font-semibold text-[#C2185B]">₹{member.income.toLocaleString()}</TableCell>
+                    <TableCell className="text-muted-foreground">{new Date(member.join_date).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" asChild className="hover:bg-[#C2185B]/10 hover:text-[#C2185B]">
+                          <Link to={`/members/${member.member_id}`}>
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="hover:bg-[#6A1B9A]/10 hover:text-[#6A1B9A]">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="hover:bg-red-500/10 hover:text-red-500">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </DashboardLayout>
   );
 }
@@ -157,6 +165,7 @@ function AddMemberForm({ onClose }: { onClose: () => void }) {
           placeholder="Enter member's full name"
           value={formData.name}
           onChange={handleChange}
+          className="border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20"
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -169,6 +178,7 @@ function AddMemberForm({ onClose }: { onClose: () => void }) {
             placeholder="Age"
             value={formData.age}
             onChange={handleChange}
+            className="border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20"
           />
         </div>
         <div className="space-y-2">
@@ -179,6 +189,7 @@ function AddMemberForm({ onClose }: { onClose: () => void }) {
             placeholder="Village name"
             value={formData.village}
             onChange={handleChange}
+            className="border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20"
           />
         </div>
       </div>
@@ -191,6 +202,7 @@ function AddMemberForm({ onClose }: { onClose: () => void }) {
             placeholder="10-digit number"
             value={formData.phone}
             onChange={handleChange}
+            className="border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20"
           />
         </div>
         <div className="space-y-2">
@@ -202,14 +214,17 @@ function AddMemberForm({ onClose }: { onClose: () => void }) {
             placeholder="₹ Amount"
             value={formData.income}
             onChange={handleChange}
+            className="border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20"
           />
         </div>
       </div>
       <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onClose}>
+        <Button type="button" variant="outline" onClick={onClose} className="border-[#C2185B]/20 hover:bg-[#C2185B]/5">
           Cancel
         </Button>
-        <Button type="submit">Add Member</Button>
+        <Button type="submit" className="btn-gradient text-white border-0">
+          Add Member
+        </Button>
       </div>
     </form>
   );

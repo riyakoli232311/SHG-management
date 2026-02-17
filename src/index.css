@@ -2,126 +2,132 @@
 @tailwind components;
 @tailwind utilities;
 
-/* SHG Management System Design System
-   Theme: Warm, accessible, professional yet friendly
-   Target: Rural women managing community savings groups
+/* SakhiSahyog Design System
+   Theme: Women Empowerment - Modern, Warm, Inspiring
+   Primary: #C2185B (Pink/Magenta) - Empowerment, Energy, Warmth
+   Secondary: #6A1B9A (Purple) - Wisdom, Dignity, Community
+   Accent: #FBC02D (Gold/Yellow) - Prosperity, Success, Hope
+   Target: Women's Self Help Groups - Digital Financial Empowerment
 */
 
 @layer base {
   :root {
-    /* Core backgrounds */
-    --background: 40 33% 98%;
-    --foreground: 150 25% 15%;
+    /* Core backgrounds - Soft warm gradient feel */
+    --background: 0 0% 100%;
+    --foreground: 280 20% 15%;
 
-    /* Card surfaces */
+    /* Card surfaces - Clean white with subtle warmth */
     --card: 0 0% 100%;
-    --card-foreground: 150 25% 15%;
+    --card-foreground: 280 20% 15%;
 
     /* Popover/dropdown */
     --popover: 0 0% 100%;
-    --popover-foreground: 150 25% 15%;
+    --popover-foreground: 280 20% 15%;
 
-    /* Primary: Forest Green - Trust, Growth, Nature */
-    --primary: 152 45% 38%;
+    /* Primary: Deep Pink/Magenta #C2185B - Empowerment, Energy */
+    --primary: 340 82% 43%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Calm Blue - Reliability */
-    --secondary: 200 60% 94%;
-    --secondary-foreground: 200 45% 25%;
+    /* Secondary: Royal Purple #6A1B9A - Wisdom, Dignity */
+    --secondary: 285 70% 35%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Muted surfaces */
-    --muted: 150 15% 95%;
-    --muted-foreground: 150 10% 45%;
+    /* Muted surfaces - Soft pink tint */
+    --muted: 340 30% 96%;
+    --muted-foreground: 280 15% 45%;
 
-    /* Accent: Warm Amber - Highlights, CTAs */
-    --accent: 38 92% 50%;
-    --accent-foreground: 38 95% 15%;
+    /* Accent: Golden Yellow #FBC02D - Prosperity, Success */
+    --accent: 45 97% 58%;
+    --accent-foreground: 280 30% 15%;
 
     /* Destructive: Soft Red for warnings */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Success: Bright Green */
-    --success: 142 76% 36%;
+    /* Success: Emerald Green - Growth, Progress */
+    --success: 160 60% 40%;
     --success-foreground: 0 0% 100%;
 
     /* Warning: Amber */
     --warning: 38 92% 50%;
     --warning-foreground: 38 95% 15%;
 
-    /* Info: Sky Blue */
-    --info: 199 89% 48%;
+    /* Info: Soft Purple */
+    --info: 270 60% 55%;
     --info-foreground: 0 0% 100%;
 
-    /* Borders and inputs */
-    --border: 150 15% 88%;
-    --input: 150 15% 88%;
-    --ring: 152 45% 38%;
+    /* Borders and inputs - Soft pink-gray */
+    --border: 340 20% 90%;
+    --input: 340 20% 90%;
+    --ring: 340 82% 43%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Sidebar */
-    --sidebar-background: 152 35% 22%;
-    --sidebar-foreground: 150 10% 95%;
-    --sidebar-primary: 152 45% 45%;
+    /* Sidebar - Deep purple for elegance */
+    --sidebar-background: 285 50% 18%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 340 82% 43%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 152 30% 28%;
-    --sidebar-accent-foreground: 150 10% 95%;
-    --sidebar-border: 152 25% 30%;
-    --sidebar-ring: 38 92% 50%;
+    --sidebar-accent: 285 45% 25%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 285 35% 25%;
+    --sidebar-ring: 45 97% 58%;
 
-    /* Custom gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(152 45% 38%) 0%, hsl(180 40% 45%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(150 15% 98%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(28 95% 55%) 100%);
+    /* Custom gradients - Women empowerment theme */
+    --gradient-hero: linear-gradient(135deg, #C2185B 0%, #6A1B9A 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(340 30% 98%) 100%);
+    --gradient-accent: linear-gradient(135deg, #FBC02D 0%, #F57F17 100%);
+    --gradient-soft: linear-gradient(135deg, #FFF5F7 0%, #FFFFFF 50%, #F3E5F5 100%);
+    --gradient-warm: linear-gradient(180deg, rgba(194, 24, 91, 0.06) 0%, rgba(255, 255, 255, 0) 100%);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(150 25% 15% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(150 25% 15% / 0.1), 0 2px 4px -2px hsl(150 25% 15% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(150 25% 15% / 0.1), 0 4px 6px -4px hsl(150 25% 15% / 0.1);
-    --shadow-card: 0 2px 8px -2px hsl(150 25% 15% / 0.08), 0 4px 16px -4px hsl(150 25% 15% / 0.12);
+    /* Shadows - Soft pink tinted */
+    --shadow-sm: 0 1px 2px 0 rgba(194, 24, 91, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(194, 24, 91, 0.08), 0 2px 4px -2px rgba(106, 27, 154, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(194, 24, 91, 0.1), 0 4px 6px -4px rgba(106, 27, 154, 0.08);
+    --shadow-card: 0 4px 20px -4px rgba(194, 24, 91, 0.12), 0 8px 32px -8px rgba(106, 27, 154, 0.08);
+    --shadow-glow: 0 0 40px -10px rgba(194, 24, 91, 0.3);
   }
 
   .dark {
-    --background: 150 25% 8%;
-    --foreground: 150 10% 95%;
+    --background: 280 25% 8%;
+    --foreground: 340 20% 95%;
 
-    --card: 150 20% 12%;
-    --card-foreground: 150 10% 95%;
+    --card: 280 20% 12%;
+    --card-foreground: 340 20% 95%;
 
-    --popover: 150 20% 12%;
-    --popover-foreground: 150 10% 95%;
+    --popover: 280 20% 12%;
+    --popover-foreground: 340 20% 95%;
 
-    --primary: 152 50% 50%;
-    --primary-foreground: 150 25% 8%;
+    --primary: 340 70% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 150 20% 18%;
-    --secondary-foreground: 150 10% 90%;
+    --secondary: 285 50% 25%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 150 15% 18%;
-    --muted-foreground: 150 10% 60%;
+    --muted: 280 15% 18%;
+    --muted-foreground: 340 10% 60%;
 
-    --accent: 38 85% 55%;
-    --accent-foreground: 38 95% 10%;
+    --accent: 45 85% 55%;
+    --accent-foreground: 280 30% 10%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 70% 45%;
+    --success: 160 60% 45%;
     --success-foreground: 0 0% 100%;
 
-    --border: 150 15% 20%;
-    --input: 150 15% 20%;
-    --ring: 152 50% 50%;
+    --border: 280 15% 20%;
+    --input: 280 15% 20%;
+    --ring: 340 70% 55%;
 
-    --sidebar-background: 150 25% 6%;
-    --sidebar-foreground: 150 10% 90%;
-    --sidebar-primary: 152 50% 50%;
-    --sidebar-primary-foreground: 150 25% 8%;
-    --sidebar-accent: 150 20% 12%;
-    --sidebar-accent-foreground: 150 10% 90%;
-    --sidebar-border: 150 15% 15%;
-    --sidebar-ring: 38 85% 55%;
+    --sidebar-background: 285 30% 10%;
+    --sidebar-foreground: 340 15% 90%;
+    --sidebar-primary: 340 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 285 25% 15%;
+    --sidebar-accent-foreground: 340 15% 90%;
+    --sidebar-border: 285 20% 18%;
+    --sidebar-ring: 45 85% 55%;
   }
 }
 
@@ -204,5 +210,85 @@
   /* Smooth scrolling */
   .scroll-smooth {
     scroll-behavior: smooth;
+  }
+
+  /* Women Empowerment Theme Utilities */
+  .bg-empowerment-gradient {
+    background: linear-gradient(135deg, #C2185B 0%, #6A1B9A 100%);
+  }
+
+  .bg-soft-gradient {
+    background: linear-gradient(135deg, #FFF5F7 0%, #FFFFFF 50%, #F3E5F5 100%);
+  }
+
+  .bg-warm-gradient {
+    background: linear-gradient(180deg, rgba(194, 24, 91, 0.06) 0%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #C2185B 0%, #6A1B9A 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .btn-gradient {
+    background: linear-gradient(135deg, #C2185B 0%, #AD1457 100%);
+    transition: all 0.3s ease;
+  }
+
+  .btn-gradient:hover {
+    background: linear-gradient(135deg, #AD1457 0%, #880E4F 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(194, 24, 91, 0.4);
+  }
+
+  .btn-accent-gradient {
+    background: linear-gradient(135deg, #FBC02D 0%, #F57F17 100%);
+    transition: all 0.3s ease;
+  }
+
+  .btn-accent-gradient:hover {
+    background: linear-gradient(135deg, #F9A825 0%, #EF6C00 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(251, 192, 45, 0.4);
+  }
+
+  .card-empowerment {
+    @apply bg-white rounded-2xl shadow-card;
+    transition: all 0.3s ease;
+  }
+
+  .card-empowerment:hover {
+    @apply shadow-card-hover;
+    transform: translateY(-4px);
+  }
+
+  .icon-empowerment {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center;
+    background: linear-gradient(135deg, rgba(194, 24, 91, 0.1) 0%, rgba(106, 27, 154, 0.1) 100%);
+  }
+
+  .border-empowerment {
+    border: 1px solid rgba(194, 24, 91, 0.15);
+  }
+
+  /* Animation utilities */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px -5px rgba(194, 24, 91, 0.3); }
+    50% { box-shadow: 0 0 40px -5px rgba(194, 24, 91, 0.5); }
   }
 }

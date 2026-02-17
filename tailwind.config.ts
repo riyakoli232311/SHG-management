@@ -76,7 +76,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
       },
       fontSize: {
         'display': ['3.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
@@ -119,8 +121,17 @@ export default {
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
       },
       boxShadow: {
-        'card': '0 2px 8px -2px hsl(150 25% 15% / 0.08), 0 4px 16px -4px hsl(150 25% 15% / 0.12)',
-        'card-hover': '0 4px 12px -2px hsl(150 25% 15% / 0.12), 0 8px 24px -4px hsl(150 25% 15% / 0.16)',
+        'card': '0 4px 20px -4px rgba(194, 24, 91, 0.12), 0 8px 32px -8px rgba(106, 27, 154, 0.08)',
+        'card-hover': '0 8px 30px -6px rgba(194, 24, 91, 0.18), 0 16px 48px -12px rgba(106, 27, 154, 0.12)',
+        'soft': '0 2px 15px -3px rgba(194, 24, 91, 0.08), 0 4px 20px -4px rgba(0, 0, 0, 0.04)',
+        'glow': '0 0 40px -10px rgba(194, 24, 91, 0.3)',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-hero': 'linear-gradient(135deg, #C2185B 0%, #6A1B9A 100%)',
+        'gradient-accent': 'linear-gradient(135deg, #FBC02D 0%, #F57F17 100%)',
+        'gradient-soft': 'linear-gradient(180deg, rgba(194, 24, 91, 0.05) 0%, rgba(255, 255, 255, 0) 100%)',
+        'gradient-warm': 'linear-gradient(135deg, #FFF5F7 0%, #FFFFFF 50%, #F3E5F5 100%)',
       },
     },
   },

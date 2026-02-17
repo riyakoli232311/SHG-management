@@ -13,6 +13,8 @@ import Savings from "./pages/Savings";
 import Loans from "./pages/Loans";
 import Repayments from "./pages/Repayments";
 import Reports from "./pages/Reports";
+import Training from "./pages/Training";
+import Marketplace from "./pages/Marketplace";
 import Chatbot from "./pages/Chatbot";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +37,8 @@ const App = () => (
           <Route path="/loans" element={<Loans />} />
           <Route path="/repayments" element={<Repayments />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/training" element={<Training />} />
+          <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/chatbot" element={<Chatbot />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
