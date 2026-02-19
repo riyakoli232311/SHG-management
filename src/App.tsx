@@ -17,6 +17,8 @@ import Chatbot from "./pages/Chatbot";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import Profile from "./pages/Profile";
+import SHGs from "./pages/SHGs";
+
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/shgs" element={<SHGs />} />
           <Route path="/members" element={<Members />} />
           <Route path="/members/:memberId" element={<MemberProfile />} />
           <Route path="/savings" element={<Savings />} />
