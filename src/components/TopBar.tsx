@@ -1,6 +1,7 @@
 import { Bell, Search, User, Sparkles, Heart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,12 +65,16 @@ export function TopBar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+                <Link to="/profile">Profile Settings</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link to="/settings">Help & Support</Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile Settings</DropdownMenuItem>
-            <DropdownMenuItem>Help & Support</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-500">Logout</DropdownMenuItem>
+            <DropdownMenuItem asChild className="text-red-500">
+                <Link to="/">Logout</Link>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

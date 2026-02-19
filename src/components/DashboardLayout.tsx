@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { TopBar } from "./TopBar";
-import { ChatBot } from "./ChatBot";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -15,7 +14,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <TopBar />
         <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
-      <ChatBot />
     </div>
   );
 }

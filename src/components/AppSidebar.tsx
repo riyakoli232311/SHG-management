@@ -26,10 +26,9 @@ const navItems = [
   { icon: Users, label: "Members", path: "/members" },
   { icon: PiggyBank, label: "Finance", path: "/savings" },
   { icon: Landmark, label: "Loans", path: "/loans" },
-  { icon: BookOpen, label: "Training", path: "/training" },
-  { icon: ShoppingBag, label: "Marketplace", path: "/marketplace" },
   { icon: BarChart3, label: "Reports", path: "/reports" },
-  { icon: Settings, label: "Settings", path: "#" },
+  { icon: MessageCircle, label: "AI Assistant", path: "/chatbot" },
+  { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 export function AppSidebar() {

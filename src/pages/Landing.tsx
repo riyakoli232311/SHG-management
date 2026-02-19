@@ -22,7 +22,6 @@ import {
   Settings,
 } from "lucide-react";
 import heroIllustration from "@/assets/hero-illustration.png";
-
 const features = [
   {
     icon: Users,
@@ -48,16 +47,6 @@ const features = [
     icon: BarChart3,
     title: "Growth Analytics",
     description: "Visualize your SHG's progress with insightful charts and financial reports.",
-  },
-  {
-    icon: BookOpen,
-    title: "Training & Skills",
-    description: "Access skill development resources and training modules for group members.",
-  },
-  {
-    icon: ShoppingBag,
-    title: "Marketplace",
-    description: "Connect with buyers and sellers to expand your SHG's business opportunities.",
   },
   {
     icon: MessageCircle,
