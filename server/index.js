@@ -1,6 +1,16 @@
+// server/index.js
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+
+import authRoutes from './routes/auth.js';
+import shgRoutes from './routes/shg.js';
+import membersRoutes from './routes/members.js';
+import savingsRoutes from './routes/savings.js';
+import loansRoutes from './routes/loans.js';
+import repaymentsRoutes from './routes/repayments.js';
+import dashboardRoutes from './routes/dashboard.js';
 import chatRoutes from './routes/chat.js';
 
 dotenv.config();
@@ -8,77 +18,61 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// ── Middleware ────────────────────────────────────────────────
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true, // Required for cookies!
+}));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+app.use((req, _res, next) => {
+  console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
 
-// Routes
+// ── Routes ────────────────────────────────────────────────────
+app.use('/api/auth', authRoutes);
+app.use('/api/shg', shgRoutes);
+app.use('/api/members', membersRoutes);
+app.use('/api/savings', savingsRoutes);
+app.use('/api/loans', loansRoutes);
+app.use('/api/repayments', repaymentsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/chat', chatRoutes);
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'SakhiSahyog AI Server is running',
-    timestamp: new Date(),
-    version: '1.0.0'
-  });
+// ── Health check ──────────────────────────────────────────────
+app.get('/api/health', (_req, res) => {
+  res.json({ success: true, message: 'SakhiSahyog server is running', timestamp: new Date() });
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Welcome to SakhiSahyog AI Backend',
-    endpoints: {
-      chat: '/api/chat',
-      health: '/api/health',
-      context: '/api/chat/context'
-    }
-  });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
+// ── Error handler ─────────────────────────────────────────────
+app.use((err, _req, res, _next) => {
   console.error('Server Error:', err);
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error',
-    message: err.message
-  });
+  res.status(500).json({ success: false, error: 'Internal server error' });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Endpoint not found'
-  });
+app.use((_req, res) => {
+  res.status(404).json({ success: false, error: 'Endpoint not found' });
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`
-╔════════════════════════════════════════════════════════════╗
-║                                                            ║
-║     🌸 SakhiSahyog AI Backend Server 🌸                    ║
-║                                                            ║
-║     Server running on http://localhost:${PORT}              ║
-║                                                            ║
-║     Available endpoints:                                   ║
-║     • POST /api/chat          - Send message to AI         ║
-║     • GET  /api/chat/history/:id - Get conversation        ║
-║     • GET  /api/chat/context  - Get SHG context            ║
-║     • GET  /api/health        - Health check               ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
+╔════════════════════════════════════════════════════╗
+║   🌸 SakhiSahyog Server  →  http://localhost:${PORT}  ║
+╠════════════════════════════════════════════════════╣
+║  POST  /api/auth/signup          Register          ║
+║  POST  /api/auth/login           Login             ║
+║  POST  /api/auth/logout          Logout            ║
+║  GET   /api/auth/me              Current user      ║
+║  POST  /api/shg/setup            Create SHG        ║
+║  GET   /api/members              List members      ║
+║  GET   /api/savings              List savings      ║
+║  GET   /api/loans                List loans        ║
+║  GET   /api/repayments           List EMIs         ║
+║  GET   /api/dashboard            Summary stats     ║
+╚════════════════════════════════════════════════════╝
   `);
 });
 

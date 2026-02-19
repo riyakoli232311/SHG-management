@@ -1,329 +1,172 @@
+// src/pages/Dashboard.tsx  (REPLACE your existing Dashboard.tsx)
+// This version fetches real data from the DB via the API.
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { PageHeader } from "@/components/PageHeader";
-import { StatusBadge } from "@/components/StatusBadge";
-import { ProgressBar } from "@/components/ProgressBar";
 import {
-  Users,
-  PiggyBank,
-  Landmark,
-  AlertCircle,
-  TrendingUp,
-  Calendar,
-  Sparkles,
-  Heart,
-  ArrowUpRight,
-  ArrowDownRight,
-  Activity,
-  Clock,
-  CheckCircle,
-  Plus,
+  Users, PiggyBank, Landmark, AlertCircle,
+  TrendingUp, Heart, CheckCircle, Plus,
 } from "lucide-react";
-import { members } from "@/data/members";
-import { getTotalSavings } from "@/data/savings";
-import { loans, getActiveLoans, getRepaymentPercentage } from "@/data/loans";
-import { getOverdueRepayments, getPendingRepayments } from "@/data/repayments";
-import { shgInfo } from "@/data/users";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { dashboardApi, loansApi } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
-  const totalSavings = getTotalSavings();
-  const activeLoans = getActiveLoans();
-  const overdueRepayments = getOverdueRepayments();
-  const pendingRepayments = getPendingRepayments();
+  const { user, shg } = useAuth();
+  const [stats, setStats] = useState<any>(null);
+  const [recentLoans, setRecentLoans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock recent activities
-  const recentActivities = [
-    { type: "savings", message: "Priya Sharma deposited ₹2,000", time: "2 hours ago", icon: PiggyBank },
-    { type: "loan", message: "New loan approved for Anjali Patel", time: "4 hours ago", icon: Landmark },
-    { type: "member", message: "Sunita Devi joined the SHG", time: "1 day ago", icon: Users },
-    { type: "repayment", message: "EMI received from Meera Kumari", time: "1 day ago", icon: CheckCircle },
-  ];
+  useEffect(() => {
+    async function load() {
+      try {
+        const [dashRes, loansRes] = await Promise.all([
+          dashboardApi.get(),
+          loansApi.list({ status: 'active' }),
+        ]);
+        setStats(dashRes.data);
+        setRecentLoans(loansRes.data.slice(0, 5));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="w-8 h-8 rounded-full border-4 border-[#C2185B]/30 border-t-[#C2185B] animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-[#C2185B] to-[#6A1B9A] rounded-2xl p-6 mb-8 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22%20fill%3D%22rgba(255%2C255%2C255%2C0.1)%22%2F%3E%3C%2Fsvg%3E')] opacity-30"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Heart className="w-5 h-5 fill-[#FBC02D] text-[#FBC02D]" />
               <span className="text-white/80 text-sm font-medium">Welcome back, Sakhi!</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">
-              Empowering Women. Enabling Growth.
+            <h1 className="text-2xl md:text-3xl font-bold mb-1">
+              {shg?.name || user?.name}
             </h1>
-            <p className="text-white/80">
-              Here's how {shgInfo.name} is performing today
+            <p className="text-white/70 text-sm">
+              {shg?.village && `${shg.village} · `}Empowering Women. Enabling Growth.
             </p>
           </div>
-          <div className="flex gap-3">
-            <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-0" asChild>
-              <Link to="/members">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Member
-              </Link>
-            </Button>
-            <Button className="bg-[#FBC02D] text-[#F57F17] hover:bg-[#F9A825] border-0" asChild>
-              <Link to="/savings">
-                Record Savings
-              </Link>
-            </Button>
+          <div className="flex gap-3 flex-wrap">
+            <Link to="/members">
+              <Button variant="secondary" size="sm" className="gap-1">
+                <Plus className="w-3 h-3" /> Add Member
+              </Button>
+            </Link>
+            <Link to="/loans">
+              <Button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10">
+                New Loan
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="Total SHGs"
-          value="1"
-          subtitle="Active groups"
+          title="Total Members"
+          value={stats?.totalMembers ?? 0}
+          subtitle={`${stats?.activeMembers ?? 0} active`}
           icon={Users}
           variant="primary"
-          trend={{ value: 0, positive: true }}
-        />
-        <StatCard
-          title="Total Members"
-          value={members.length}
-          subtitle="Active members"
-          icon={Users}
-          variant="success"
-          trend={{ value: 8, positive: true }}
         />
         <StatCard
           title="Total Savings"
-          value={`₹${totalSavings.toLocaleString()}`}
+          value={`₹${(stats?.totalSavings ?? 0).toLocaleString()}`}
           subtitle="Group savings"
           icon={PiggyBank}
-          variant="info"
-          trend={{ value: 12, positive: true }}
+          variant="success"
         />
         <StatCard
-          title="Active Loans"
-          value={`₹${activeLoans.reduce((s, l) => s + l.loan_amount, 0).toLocaleString()}`}
-          subtitle={`${activeLoans.length} loans disbursed`}
+          title="Loans Disbursed"
+          value={`₹${(stats?.totalLoansDisbursed ?? 0).toLocaleString()}`}
+          subtitle={`${stats?.activeLoansCount ?? 0} active`}
           icon={Landmark}
-          variant="warning"
+          variant="info"
+        />
+        <StatCard
+          title="Overdue EMIs"
+          value={stats?.overdueRepayments ?? 0}
+          subtitle={`${stats?.pendingRepayments ?? 0} pending`}
+          icon={AlertCircle}
+          variant={stats?.overdueRepayments > 0 ? 'danger' : 'primary'}
         />
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-3 gap-6 mb-8">
-        {/* Quick Actions */}
-        <Card className="border-[#C2185B]/10 shadow-soft">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#C2185B]/10 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-[#C2185B]" />
-              </div>
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start border-[#C2185B]/20 hover:bg-[#C2185B]/5 hover:border-[#C2185B]" asChild>
-              <Link to="/members">
-                <Users className="w-4 h-4 mr-3 text-[#C2185B]" />
-                Add New Member
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start border-[#C2185B]/20 hover:bg-[#C2185B]/5 hover:border-[#C2185B]" asChild>
-              <Link to="/savings">
-                <PiggyBank className="w-4 h-4 mr-3 text-[#C2185B]" />
-                Record Savings
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start border-[#C2185B]/20 hover:bg-[#C2185B]/5 hover:border-[#C2185B]" asChild>
-              <Link to="/loans">
-                <Landmark className="w-4 h-4 mr-3 text-[#C2185B]" />
-                Create New Loan
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start border-[#C2185B]/20 hover:bg-[#C2185B]/5 hover:border-[#C2185B]" asChild>
-              <Link to="/repayments">
-                <Calendar className="w-4 h-4 mr-3 text-[#C2185B]" />
-                Record Repayment
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activities */}
-        <Card className="border-[#C2185B]/10 shadow-soft">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#6A1B9A]/10 flex items-center justify-center">
-                <Activity className="w-4 h-4 text-[#6A1B9A]" />
-              </div>
-              Recent Activities
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#C2185B]/10 to-[#6A1B9A]/10 flex items-center justify-center flex-shrink-0">
-                    <activity.icon className="w-5 h-5 text-[#C2185B]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{activity.message}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                      <Clock className="w-3 h-3" />
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Performance Overview */}
-        <Card className="border-[#C2185B]/10 shadow-soft">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#FBC02D]/20 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-[#F57F17]" />
-              </div>
-              Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Savings Target</span>
-                  <span className="text-sm text-[#C2185B] font-semibold">78%</span>
-                </div>
-                <div className="h-2 bg-[#C2185B]/10 rounded-full overflow-hidden">
-                  <div className="h-full w-[78%] bg-gradient-to-r from-[#C2185B] to-[#6A1B9A] rounded-full" />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Loan Recovery</span>
-                  <span className="text-sm text-[#6A1B9A] font-semibold">92%</span>
-                </div>
-                <div className="h-2 bg-[#6A1B9A]/10 rounded-full overflow-hidden">
-                  <div className="h-full w-[92%] bg-gradient-to-r from-[#6A1B9A] to-[#C2185B] rounded-full" />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Member Growth</span>
-                  <span className="text-sm text-[#F57F17] font-semibold">+15%</span>
-                </div>
-                <div className="h-2 bg-[#FBC02D]/20 rounded-full overflow-hidden">
-                  <div className="h-full w-[65%] bg-gradient-to-r from-[#FBC02D] to-[#F57F17] rounded-full" />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bottom Section */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Active Loans */}
-        <Card className="border-[#C2185B]/10 shadow-soft">
-          <CardHeader className="pb-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#C2185B]/10 flex items-center justify-center">
-                <Landmark className="w-4 h-4 text-[#C2185B]" />
-              </div>
+      {/* Active Loans Table */}
+      {recentLoans.length > 0 && (
+        <Card className="border-[#C2185B]/10">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-[#C2185B]" />
               Active Loans
             </CardTitle>
-            <Button variant="ghost" size="sm" className="text-[#C2185B] hover:bg-[#C2185B]/5" asChild>
-              <Link to="/loans">View All</Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {activeLoans.slice(0, 4).map((loan) => {
-                const member = members.find((m) => m.member_id === loan.member_id);
-                const progress = getRepaymentPercentage(loan);
-                return (
-                  <div key={loan.loan_id} className="flex items-center gap-4 p-3 rounded-xl bg-[#C2185B]/5 hover:bg-[#C2185B]/10 transition-colors">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center text-white font-semibold text-sm">
-                      {member?.name.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-medium truncate">{member?.name}</p>
-                        <span className="text-sm font-semibold text-[#C2185B]">
-                          ₹{loan.loan_amount.toLocaleString()}
-                        </span>
-                      </div>
-                      <ProgressBar
-                        value={progress}
-                        size="sm"
-                        variant={progress >= 50 ? "success" : "default"}
-                      />
-                    </div>
-                    <span className="text-sm font-semibold text-[#6A1B9A]">{progress}%</span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Repayments */}
-        <Card className="border-[#C2185B]/10 shadow-soft">
-          <CardHeader className="pb-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#6A1B9A]/10 flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-[#6A1B9A]" />
-              </div>
-              Recent Repayments
-            </CardTitle>
-            <Button variant="ghost" size="sm" className="text-[#6A1B9A] hover:bg-[#6A1B9A]/5" asChild>
-              <Link to="/repayments">View All</Link>
-            </Button>
+            <Link to="/loans" className="text-xs text-[#C2185B] hover:underline">View all →</Link>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-[#C2185B]/10">
-                    <TableHead className="text-[#C2185B]">Member</TableHead>
-                    <TableHead className="text-[#C2185B]">Due Date</TableHead>
-                    <TableHead className="text-[#C2185B]">Amount</TableHead>
-                    <TableHead className="text-[#C2185B]">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[...overdueRepayments, ...pendingRepayments].slice(0, 5).map((rep) => {
-                    const loan = loans.find((l) => l.loan_id === rep.loan_id);
-                    const member = members.find((m) => m.member_id === loan?.member_id);
-                    return (
-                      <TableRow key={rep.repayment_id} className="border-[#C2185B]/5 hover:bg-[#C2185B]/5">
-                        <TableCell className="font-medium">{member?.name}</TableCell>
-                        <TableCell>{new Date(rep.due_date).toLocaleDateString()}</TableCell>
-                        <TableCell className="font-semibold text-[#C2185B]">₹{loan?.emi.toLocaleString()}</TableCell>
-                        <TableCell>
-                          <StatusBadge status={rep.status} />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-muted-foreground">
+                    <th className="text-left py-2 font-medium">Member</th>
+                    <th className="text-right py-2 font-medium">Amount</th>
+                    <th className="text-right py-2 font-medium">Purpose</th>
+                    <th className="text-center py-2 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentLoans.map(loan => (
+                    <tr key={loan.id} className="border-b last:border-0 hover:bg-muted/30">
+                      <td className="py-2 font-medium">{loan.member_name}</td>
+                      <td className="py-2 text-right">₹{Number(loan.loan_amount).toLocaleString()}</td>
+                      <td className="py-2 text-right text-muted-foreground">{loan.purpose || '—'}</td>
+                      <td className="py-2 text-center">
+                        <span className="inline-block px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">
+                          {loan.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
-      </div>
+      )}
+
+      {recentLoans.length === 0 && stats?.totalMembers === 0 && (
+        <Card className="border-dashed border-2 border-[#C2185B]/30">
+          <CardContent className="py-12 text-center">
+            <CheckCircle className="w-12 h-12 text-[#C2185B]/40 mx-auto mb-4" />
+            <h3 className="font-semibold text-lg mb-2">Get Started!</h3>
+            <p className="text-muted-foreground text-sm mb-4">Add your first member to begin managing your SHG.</p>
+            <Link to="/members">
+              <Button className="bg-[#C2185B] hover:bg-[#AD1457] text-white">
+                <Plus className="w-4 h-4 mr-1" /> Add First Member
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
     </DashboardLayout>
   );
 }
