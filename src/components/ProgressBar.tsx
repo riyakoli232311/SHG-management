@@ -9,10 +9,10 @@ interface ProgressBarProps {
 }
 
 const variantStyles = {
-  default: "bg-primary",
-  success: "bg-success",
-  warning: "bg-warning",
-  destructive: "bg-destructive",
+  default: "bg-gradient-to-r from-[#C2185B] to-[#6A1B9A]",
+  success: "bg-gradient-to-r from-emerald-500 to-emerald-600",
+  warning: "bg-gradient-to-r from-[#FBC02D] to-[#F57F17]",
+  destructive: "bg-gradient-to-r from-red-500 to-red-600",
 };
 
 const sizeStyles = {
@@ -32,7 +32,7 @@ export function ProgressBar({
 
   return (
     <div className="w-full">
-      <div className={cn("w-full bg-muted rounded-full overflow-hidden", sizeStyles[size])}>
+      <div className={cn("w-full bg-[#C2185B]/10 rounded-full overflow-hidden", sizeStyles[size])}>
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",

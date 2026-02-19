@@ -27,9 +27,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, PiggyBank, TrendingUp, Calendar } from "lucide-react";
+import { Plus, PiggyBank, TrendingUp, Calendar, Sparkles, Heart } from "lucide-react";
 import { savings, getTotalSavings, getMemberTotalSavings } from "@/data/savings";
 import { members } from "@/data/members";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Savings() {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -44,17 +45,22 @@ export default function Savings() {
 
   return (
     <DashboardLayout>
-      <PageHeader title="Savings" description="Track and manage group savings">
+      <PageHeader title="Finance" description="Track and manage group savings">
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="btn-gradient text-white border-0">
               <Plus className="w-4 h-4 mr-2" />
               Record Saving
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="border-[#C2185B]/10">
             <DialogHeader>
-              <DialogTitle>Record New Saving</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center">
+                  <PiggyBank className="w-4 h-4 text-white" />
+                </div>
+                Record New Saving
+              </DialogTitle>
             </DialogHeader>
             <AddSavingForm onClose={() => setIsAddOpen(false)} />
           </DialogContent>
@@ -62,7 +68,7 @@ export default function Savings() {
       </PageHeader>
 
       {/* Stats */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid sm:grid-cols-3 gap-6 mb-8">
         <StatCard
           title="Total Group Savings"
           value={`₹${totalSavings.toLocaleString()}`}
@@ -82,84 +88,103 @@ export default function Savings() {
           value={`₹${Math.round(totalSavings / members.length).toLocaleString()}`}
           subtitle={`${members.length} members`}
           icon={TrendingUp}
+          variant="info"
         />
       </div>
 
       {/* Member-wise Savings */}
-      <div className="bg-card rounded-xl border border-border p-6 mb-6">
-        <h3 className="font-semibold text-lg mb-4">Member-wise Savings</h3>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Village</TableHead>
-                <TableHead>Contributions</TableHead>
-                <TableHead>Total Saved</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {memberSavingsSummary.map((member) => (
-                <TableRow key={member.member_id} className="table-row-hover">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
-                        {member.name.charAt(0)}
-                      </div>
-                      <span className="font-medium">{member.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{member.village}</TableCell>
-                  <TableCell>{member.contributions} months</TableCell>
-                  <TableCell className="font-semibold text-success">
-                    ₹{member.totalSavings.toLocaleString()}
-                  </TableCell>
+      <Card className="border-[#C2185B]/10 shadow-soft mb-8">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[#C2185B]/10 flex items-center justify-center">
+              <Heart className="w-4 h-4 text-[#C2185B]" />
+            </div>
+            Member-wise Savings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-[#C2185B]/10 bg-gradient-to-r from-[#C2185B]/5 to-transparent">
+                  <TableHead className="text-[#C2185B] font-semibold">Member</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold">Village</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold">Contributions</TableHead>
+                  <TableHead className="text-[#C2185B] font-semibold">Total Saved</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+              </TableHeader>
+              <TableBody>
+                {memberSavingsSummary.map((member) => (
+                  <TableRow key={member.member_id} className="border-[#C2185B]/5 hover:bg-[#C2185B]/5 transition-colors">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center text-white font-semibold text-sm">
+                          {member.name.charAt(0)}
+                        </div>
+                        <span className="font-semibold text-foreground">{member.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{member.village}</TableCell>
+                    <TableCell>{member.contributions} months</TableCell>
+                    <TableCell className="font-semibold text-emerald-600">
+                      ₹{member.totalSavings.toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Recent Transactions */}
-      <div className="bg-card rounded-xl border border-border p-6">
-        <h3 className="font-semibold text-lg mb-4">Recent Transactions</h3>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Member</TableHead>
-                <TableHead>Month</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Mode</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {savings.slice(0, 10).map((saving) => {
-                const member = members.find((m) => m.member_id === saving.member_id);
-                return (
-                  <TableRow key={saving.saving_id} className="table-row-hover">
-                    <TableCell className="font-mono text-sm">{saving.saving_id}</TableCell>
-                    <TableCell>{member?.name}</TableCell>
-                    <TableCell>
-                      {saving.month} {saving.year}
-                    </TableCell>
-                    <TableCell className="font-medium">₹{saving.amount.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-secondary">
-                        {saving.payment_mode}
-                      </span>
-                    </TableCell>
-                    <TableCell>{new Date(saving.date).toLocaleDateString()}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+      <Card className="border-[#C2185B]/10 shadow-soft">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[#6A1B9A]/10 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-[#6A1B9A]" />
+            </div>
+            Recent Transactions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-[#C2185B]/10 bg-gradient-to-r from-[#6A1B9A]/5 to-transparent">
+                  <TableHead className="text-[#6A1B9A] font-semibold">ID</TableHead>
+                  <TableHead className="text-[#6A1B9A] font-semibold">Member</TableHead>
+                  <TableHead className="text-[#6A1B9A] font-semibold">Month</TableHead>
+                  <TableHead className="text-[#6A1B9A] font-semibold">Amount</TableHead>
+                  <TableHead className="text-[#6A1B9A] font-semibold">Mode</TableHead>
+                  <TableHead className="text-[#6A1B9A] font-semibold">Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {savings.slice(0, 10).map((saving) => {
+                  const member = members.find((m) => m.member_id === saving.member_id);
+                  return (
+                    <TableRow key={saving.saving_id} className="border-[#C2185B]/5 hover:bg-[#C2185B]/5 transition-colors">
+                      <TableCell className="font-mono text-sm text-muted-foreground">{saving.saving_id}</TableCell>
+                      <TableCell className="font-medium">{member?.name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {saving.month} {saving.year}
+                      </TableCell>
+                      <TableCell className="font-semibold text-[#C2185B]">₹{saving.amount.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <span className="px-3 py-1 rounded-full text-xs bg-[#C2185B]/10 text-[#C2185B] font-medium">
+                          {saving.payment_mode}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{new Date(saving.date).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </DashboardLayout>
   );
 }
@@ -182,7 +207,7 @@ function AddSavingForm({ onClose }: { onClose: () => void }) {
       <div className="space-y-2">
         <Label>Select Member</Label>
         <Select value={formData.memberId} onValueChange={(v) => setFormData((p) => ({ ...p, memberId: v }))}>
-          <SelectTrigger>
+          <SelectTrigger className="border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20">
             <SelectValue placeholder="Choose member" />
           </SelectTrigger>
           <SelectContent>
@@ -198,7 +223,7 @@ function AddSavingForm({ onClose }: { onClose: () => void }) {
         <div className="space-y-2">
           <Label>Month</Label>
           <Select value={formData.month} onValueChange={(v) => setFormData((p) => ({ ...p, month: v }))}>
-            <SelectTrigger>
+            <SelectTrigger className="border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20">
               <SelectValue placeholder="Select month" />
             </SelectTrigger>
             <SelectContent>
@@ -218,13 +243,14 @@ function AddSavingForm({ onClose }: { onClose: () => void }) {
             placeholder="₹ 500"
             value={formData.amount}
             onChange={(e) => setFormData((p) => ({ ...p, amount: e.target.value }))}
+            className="border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20"
           />
         </div>
       </div>
       <div className="space-y-2">
         <Label>Payment Mode</Label>
         <Select value={formData.paymentMode} onValueChange={(v) => setFormData((p) => ({ ...p, paymentMode: v }))}>
-          <SelectTrigger>
+          <SelectTrigger className="border-[#C2185B]/20 focus:border-[#C2185B] focus:ring-[#C2185B]/20">
             <SelectValue placeholder="Select payment mode" />
           </SelectTrigger>
           <SelectContent>
@@ -235,10 +261,12 @@ function AddSavingForm({ onClose }: { onClose: () => void }) {
         </Select>
       </div>
       <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onClose}>
+        <Button type="button" variant="outline" onClick={onClose} className="border-[#C2185B]/20 hover:bg-[#C2185B]/5">
           Cancel
         </Button>
-        <Button type="submit">Record Saving</Button>
+        <Button type="submit" className="btn-gradient text-white border-0">
+          Record Saving
+        </Button>
       </div>
     </form>
   );

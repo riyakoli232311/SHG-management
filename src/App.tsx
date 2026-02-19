@@ -15,6 +15,8 @@ import Repayments from "./pages/Repayments";
 import Reports from "./pages/Reports";
 import Chatbot from "./pages/Chatbot";
 import NotFound from "./pages/NotFound";
+import SettingsPage from "./pages/Settings";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const App = () => (
           <Route path="/repayments" element={<Repayments />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/chatbot" element={<Chatbot />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/profile" element={<Profile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
