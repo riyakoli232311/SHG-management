@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { currentUser } from "@/data/users";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +38,8 @@ const navItems = [
 ];
 
 export function AppSidebar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate(); 
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -153,13 +155,13 @@ export function AppSidebar() {
               )}
             >
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                {currentUser.name.charAt(0)}
+                {user?.name?.charAt(0)?.toUpperCase()}
               </div>
               {!collapsed && (
                 <>
                   <div className="text-left flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{currentUser.name}</p>
-                    <p className="text-xs text-white/50 truncate">{currentUser.role}</p>
+                    <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
+                    <p className="text-xs text-white/50 truncate">{"SHG Leader"}</p>
                   </div>
                   <ChevronUp className="w-4 h-4 text-white/40 flex-shrink-0" />
                 </>
@@ -181,18 +183,18 @@ export function AppSidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Logout */}
-        <Link
-          to="/"
-          className={cn(
-            "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200",
-            "hover:bg-red-500/20 text-sidebar-foreground/70 hover:text-red-300",
-            collapsed && "justify-center"
-          )}
-        >
-          <LogOut className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && <span className="text-sm font-medium">Logout</span>}
-        </Link>
+      {/* Logout */}
+<button
+  onClick={async () => { await logout(); navigate("/"); }}
+  className={cn(
+    "flex items-center gap-3 px-3 py-3 w-full rounded-xl transition-all duration-200",
+    "hover:bg-red-500/20 text-sidebar-foreground/70 hover:text-red-300",
+    collapsed && "justify-center"
+  )}
+>
+  <LogOut className="w-5 h-5 flex-shrink-0" />
+  {!collapsed && <span className="text-sm font-medium">Logout</span>}
+</button>
       </div>
     </aside>
   );

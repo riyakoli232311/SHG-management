@@ -11,7 +11,6 @@ import {
   ArrowRight,
   Sparkles,
   Heart,
-  CheckCircle,
 } from "lucide-react";
 
 const features = [
@@ -241,57 +240,6 @@ export default function Landing() {
                 <p className="text-sm text-gray-500 leading-relaxed">{feature.description}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section - Ready to Transform */}
-      <section className="py-20 px-6 bg-gradient-to-br from-[#FFF5F7] to-[#F3E5F5]/40">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-[#C2185B] to-[#6A1B9A] rounded-3xl p-12 text-center text-white relative overflow-hidden">
-            <div className="absolute inset-0 opacity-10">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute rounded-full border border-white"
-                  style={{
-                    width: `${(i + 1) * 80}px`,
-                    height: `${(i + 1) * 80}px`,
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                  }}
-                />
-              ))}
-            </div>
-            <div className="relative z-10">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-white/20 flex items-center justify-center mb-6">
-                <CheckCircle className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-3xl font-bold mb-4">Ready to Transform Your SHG?</h2>
-              <p className="text-white/80 text-lg mb-8 max-w-lg mx-auto">
-                Join thousands of women building a stronger financial future together.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  asChild
-                  className="bg-white text-[#C2185B] hover:bg-white/90 font-semibold px-8 shadow-md"
-                >
-                  <Link to="/signup">
-                    Create Free Account
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-                <Button
-                  size="lg"
-                  asChild
-                  className="bg-white/20 text-white border-2 border-white/60 hover:bg-white/30 font-semibold px-8 backdrop-blur-sm"
-                >
-                  <Link to="/login">Login</Link>
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       </section>
