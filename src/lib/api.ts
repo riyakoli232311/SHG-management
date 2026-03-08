@@ -32,6 +32,11 @@ export const authApi = {
   logout: () => request<any>('POST', '/api/auth/logout'),
 
   me: () => request<any>('GET', '/api/auth/me'),
+  // ADD this method inside the authApi object in src/lib/api.ts
+ 
+  changePassword: (data: { current: string; newPassword: string }) =>
+  request<any>('POST', '/api/auth/change-password', data),
+  
 };
 
 // ── SHG ───────────────────────────────────────────────────────

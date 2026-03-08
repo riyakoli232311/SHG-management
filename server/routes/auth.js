@@ -114,4 +114,32 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
+// ADD THIS to server/routes/auth.js — paste before the final `export default router;`
+
+// ── POST /api/auth/change-password ──────────────────────────
+router.post('/change-password', requireAuth, async (req, res) => {
+  try {
+    const { current, newPassword } = req.body;
+    if (!current || !newPassword) {
+      return res.status(400).json({ success: false, error: 'Both fields required' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, error: 'Min 6 characters' });
+    }
+
+    const sql = getDb();
+    const [user] = await sql`SELECT password_hash FROM users WHERE id = ${req.user.id}`;
+    const valid = await verifyPassword(current, user.password_hash);
+    if (!valid) return res.status(401).json({ success: false, error: 'Current password is incorrect' });
+
+    const newHash = await hashPassword(newPassword);
+    await sql`UPDATE users SET password_hash = ${newHash} WHERE id = ${req.user.id}`;
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Failed to change password' });
+  }
+});
+
 export default router;
