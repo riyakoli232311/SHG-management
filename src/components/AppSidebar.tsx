@@ -9,6 +9,7 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
+  CalendarCheck,
   ChevronUp,
   LogOut,
   Settings,
@@ -33,6 +34,7 @@ const navItems = [
   { icon: Users, label: "Members", path: "/members" },
   { icon: PiggyBank, label: "Finance", path: "/savings" },
   { icon: Landmark, label: "Loans", path: "/loans" },
+  { icon: CalendarCheck, label: "Repayments", path: "/repayments" },
   { icon: BarChart3, label: "Reports", path: "/reports" },
   { icon: MessageCircle, label: "AI Assistant", path: "/chatbot" },
 ];
