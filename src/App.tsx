@@ -27,6 +27,10 @@ import Profile from "./pages/Profile";
 import SHGs from "./pages/SHGs";
 import NotFound from "./pages/NotFound";
 
+import MemberLogin from "./pages/MemberLogin";
+import MemberLoanDashboard from "./pages/MemberLoanDashboard";
+import LeaderLoanApproval from "./pages/LeaderLoanApproval";
+
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminSignup from "./pages/admin/AdminSignup";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -47,6 +51,7 @@ const App = () => (
             {/* Public routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/member-login" element={<MemberLogin />} />
             <Route path="/signup" element={<Signup />} />
             
             {/* Admin routes */}
@@ -74,6 +79,8 @@ const App = () => (
             <Route path="/members/:memberId" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />
             <Route path="/savings" element={<ProtectedRoute><Savings /></ProtectedRoute>} />
             <Route path="/loans" element={<ProtectedRoute><Loans /></ProtectedRoute>} />
+            <Route path="/member/loans" element={<ProtectedRoute><MemberLoanDashboard /></ProtectedRoute>} />
+            <Route path="/leader/loans/verify" element={<ProtectedRoute><LeaderLoanApproval /></ProtectedRoute>} />
             <Route path="/repayments" element={<ProtectedRoute><Repayments /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />

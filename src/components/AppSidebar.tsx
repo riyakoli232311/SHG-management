@@ -28,15 +28,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const navItems = [
+const LEADER_NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Users, label: "SHGs", path: "/shgs" },
   { icon: Users, label: "Members", path: "/members" },
   { icon: PiggyBank, label: "Finance", path: "/savings" },
   { icon: Landmark, label: "Loans", path: "/loans" },
+  { icon: Landmark, label: "Verify Loans", path: "/leader/loans/verify" },
   { icon: CalendarCheck, label: "Repayments", path: "/repayments" },
   { icon: BarChart3, label: "Reports", path: "/reports" },
   { icon: MessageCircle, label: "AI Assistant", path: "/chatbot" },
+];
+
+const MEMBER_NAV_ITEMS = [
+  { icon: Landmark, label: "My Loans", path: "/member/loans" },
 ];
 
 export function AppSidebar() {
@@ -44,6 +49,8 @@ export function AppSidebar() {
   const navigate = useNavigate(); 
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+
+  const navItems = user?.role === 'member' ? MEMBER_NAV_ITEMS : LEADER_NAV_ITEMS;
 
   return (
     <aside
@@ -163,7 +170,7 @@ export function AppSidebar() {
                 <>
                   <div className="text-left flex-1 min-w-0">
                     <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
-                    <p className="text-xs text-white/50 truncate">{"SHG Leader"}</p>
+                    <p className="text-xs text-white/50 truncate">{user?.role === 'member' ? "Member" : "SHG Leader"}</p>
                   </div>
                   <ChevronUp className="w-4 h-4 text-white/40 flex-shrink-0" />
                 </>

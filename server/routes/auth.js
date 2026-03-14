@@ -142,4 +142,85 @@ router.post('/change-password', requireAuth, async (req, res) => {
   }
 });
 
+// ── POST /api/auth/member-login ──────────────────────────────
+router.post('/member-login', async (req, res) => {
+  try {
+    const { name, password } = req.body;
+    if (!name || !password) {
+      return res.status(400).json({ success: false, error: 'Name and Password are required for Member Login' });
+    }
+
+    const sql = getDb();
+    const [member] = await sql`SELECT * FROM members WHERE name = ${name}`;
+    
+    if (!member) {
+      return res.status(401).json({ success: false, error: 'Invalid member credentials' });
+    }
+
+    if (!member.password_hash) {
+      return res.status(401).json({ success: false, error: 'Password not set. Please register first.' });
+    }
+
+    const valid = await verifyPassword(password, member.password_hash);
+    if (!valid) {
+      return res.status(401).json({ success: false, error: 'Invalid member credentials' });
+    }
+
+
+    // Use JWT to sign member login, maybe distinguish by role
+    const token = createToken({ memberId: member.id, role: 'member' });
+    setSessionCookie(res, token);
+
+    res.json({
+      success: true,
+      user: { id: member.id, name: member.name, role: 'member', shg_id: member.shg_id }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Member login failed' });
+  }
+});
+
+// ── POST /api/auth/member-signup ─────────────────────────────
+router.post('/member-signup', async (req, res) => {
+  try {
+    const { name, phone, aadhar, shg_id, password } = req.body;
+    
+    if (!name || !phone || !aadhar || !shg_id || !password) {
+      return res.status(400).json({ success: false, error: 'All fields are required' });
+    }
+    
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
+    }
+
+    const sql = getDb();
+
+    // Check if member already exists by aadhaar
+    const existing = await sql`SELECT id FROM members WHERE aadhar = ${aadhar}`;
+    if (existing.length > 0) {
+      return res.status(409).json({ success: false, error: 'Aadhaar already registered' });
+    }
+
+    const passwordHash = await hashPassword(password);
+
+    const [member] = await sql`
+      INSERT INTO members (name, phone, aadhar, shg_id, status, password_hash)
+      VALUES (${name}, ${phone}, ${aadhar}, ${shg_id}, 'active', ${passwordHash})
+      RETURNING id, name, shg_id
+    `;
+
+    const token = createToken({ memberId: member.id, role: 'member' });
+    setSessionCookie(res, token);
+
+    res.status(201).json({
+      success: true,
+      user: { id: member.id, name: member.name, role: 'member', shg_id: member.shg_id }
+    });
+  } catch (err) {
+    console.error('Member Signup Error:', err);
+    res.status(500).json({ success: false, error: 'Member signup failed' });
+  }
+});
+
 export default router;

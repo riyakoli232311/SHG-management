@@ -13,6 +13,7 @@ import repaymentsRoutes from './routes/repayments.js';
 import dashboardRoutes from './routes/dashboard.js';
 import chatRoutes from './routes/chat.js';
 import adminRoutes from './routes/admin.js';
+import loanReqRoutes from './routes/loanRequests.js';
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ app.use('/api/repayments', repaymentsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/loan', loanReqRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {

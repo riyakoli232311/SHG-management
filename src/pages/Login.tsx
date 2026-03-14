@@ -82,11 +82,19 @@ export default function Login() {
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground">
-            New to SakhiSahyog?{' '}
-            <Link to="/signup" className="text-[#C2185B] font-medium hover:underline">
-              Create account
-            </Link>
+          <p className="text-center text-sm text-muted-foreground flex flex-col gap-2">
+            <span>
+              New to SakhiSahyog?{' '}
+              <Link to="/signup" className="text-[#C2185B] font-medium hover:underline">
+                Create account
+              </Link>
+            </span>
+            <span>
+              Are you a Member?{' '}
+              <Link to="/member-login" className="text-[#C2185B] font-medium hover:underline">
+                Member Login
+              </Link>
+            </span>
           </p>
         </form>
       </div>

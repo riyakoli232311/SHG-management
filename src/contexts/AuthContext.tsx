@@ -7,7 +7,8 @@ import { authApi } from '@/lib/api';
 interface User {
   id: string;
   name: string;
-  email: string;
+  email?: string;
+  role?: string;
 }
 
 interface Shg {
@@ -24,6 +25,7 @@ interface AuthContextType {
   onboarded: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  memberLogin: (phone: string, aadhar: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -67,6 +69,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setOnboarded(false);
   };
 
+  const memberLogin = async (phone: string, aadhar: string) => {
+    const res = await authApi.memberLogin({ phone, aadhar });
+    setUser(res.user);
+    setOnboarded(true); // Members don't have an onboarding flow, they are part of an SHG
+  };
+
   const logout = async () => {
     await authApi.logout();
     setUser(null);
@@ -75,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, shg, onboarded, loading, login, signup, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, shg, onboarded, loading, login, memberLogin, signup, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

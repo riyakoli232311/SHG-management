@@ -19,7 +19,18 @@ export async function requireAuth(req, res, next) {
   try {
     const sql = getDb();
 
-    // Load user
+    if (payload.memberId) {
+      const [member] = await sql`SELECT id, name, shg_id FROM members WHERE id = ${payload.memberId}`;
+      if (!member) {
+        return res.status(401).json({ success: false, error: 'Member not found' });
+      }
+      req.memberId = member.id;
+      req.member = member;
+      req.shgId = member.shg_id;
+      return next();
+    }
+
+    // Load user (Leader)
     const [user] = await sql`SELECT id, name, email FROM users WHERE id = ${payload.userId}`;
     if (!user) {
       return res.status(401).json({ success: false, error: 'User not found' });

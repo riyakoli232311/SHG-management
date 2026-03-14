@@ -33,7 +33,9 @@ export const authApi = {
 
   me: () => request<any>('GET', '/api/auth/me'),
   // ADD this method inside the authApi object in src/lib/api.ts
- 
+  memberLogin: (data: { phone: string; aadhar: string }) =>
+    request<any>('POST', '/api/auth/member-login', data),
+
   changePassword: (data: { current: string; newPassword: string }) =>
   request<any>('POST', '/api/auth/change-password', data),
   
@@ -106,6 +108,22 @@ export const loansApi = {
 
   update: (id: string, data: { status?: string; purpose?: string }) =>
     request<any>('PUT', `/api/loans/${id}`, data),
+};
+
+// ── Loan Requests (Module) ────────────────────────────────────
+export const loanRequestsApi = {
+  apply: (data: { member_id?: string; amount: number; purpose: string; duration: number; documents: any[] }) =>
+    request<any>('POST', '/api/loan/apply', data),
+
+  getMemberLoans: (member_id?: string) => {
+    const qs = member_id ? `?member_id=${member_id}` : '';
+    return request<any>('GET', `/api/loan/member${qs}`);
+  },
+
+  getLeaderReview: () => request<any>('GET', '/api/loan/leader-review'),
+
+  approveLoan: (data: { loan_id: string; status: 'approved' | 'rejected' }) =>
+    request<any>('PUT', '/api/loan/leader-approve', data),
 };
 
 // ── Repayments ────────────────────────────────────────────────
