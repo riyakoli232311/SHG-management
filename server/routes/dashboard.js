@@ -36,6 +36,32 @@ router.get('/', requireShg, async (req, res) => {
       if (m.village) membersByVillage[m.village] = (membersByVillage[m.village] || 0) + 1;
     });
 
+    // Fetch the SHG's district to find the corresponding admin
+    const [shgInfo] = await sql`SELECT district FROM shg_info WHERE id = ${shgId}`;
+    let adminInfo = null;
+    let schemes = [];
+
+    if (shgInfo?.district) {
+      // Find the admin assigned to this district
+      const [admin] = await sql`
+        SELECT id, name, email, phone_number 
+        FROM admins 
+        WHERE LOWER(district) = LOWER(${shgInfo.district}) 
+        LIMIT 1
+      `;
+      
+      if (admin) {
+        adminInfo = admin;
+        // Fetch schemes posted by this admin
+        schemes = await sql`
+          SELECT id, title, description, created_at
+          FROM government_schemes
+          WHERE admin_id = ${admin.id}
+          ORDER BY created_at DESC
+        `;
+      }
+    }
+
     res.json({
       success: true,
       data: {
@@ -49,6 +75,8 @@ router.get('/', requireShg, async (req, res) => {
         pendingRepayments: pendingCount,
         overdueRepayments: overdueCount,
         membersByVillage,
+        adminInfo,
+        schemes
       },
     });
   } catch (err) {

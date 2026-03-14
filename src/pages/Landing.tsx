@@ -120,6 +120,9 @@ export default function Landing() {
 
           {/* Auth Buttons */}
           <div className="flex items-center gap-3">
+            <Button variant="ghost" asChild className="text-[#C2185B] hover:bg-[#C2185B]/5 hidden lg:flex text-xs">
+              <Link to="/admin/login">Admin</Link>
+            </Button>
             <Button variant="ghost" asChild className="text-[#C2185B] hover:bg-[#C2185B]/5 hidden sm:flex">
               <Link to="/login">Login</Link>
             </Button>

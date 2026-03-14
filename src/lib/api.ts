@@ -118,3 +118,24 @@ export const repaymentsApi = {
   pay: (id: string, paid_date?: string) =>
     request<any>('POST', `/api/repayments/${id}/pay`, { paid_date }),
 };
+
+// ── Admin ─────────────────────────────────────────────────────
+export const adminApi = {
+  // Check auth
+  me: () => request<any>('GET', '/api/admin/me'),
+
+  // Auth
+  signup: (data: any) => request<any>('POST', '/api/admin/signup', data),
+  login: (data: any) => request<any>('POST', '/api/admin/login', data),
+  logout: () => request<any>('POST', '/api/admin/logout'),
+
+  // Entities
+  getShgs: () => request<any>('GET', '/api/admin/shgs'),
+  getShgDetails: (id: string) => request<any>('GET', `/api/admin/shgs/${id}`),
+
+  // Schemes
+  getSchemes: () => request<any>('GET', '/api/admin/schemes'),
+  createScheme: (data: any) => request<any>('POST', '/api/admin/schemes', data),
+  updateScheme: (id: string, data: any) => request<any>('PUT', `/api/admin/schemes/${id}`, data),
+  deleteScheme: (id: string) => request<any>('DELETE', `/api/admin/schemes/${id}`),
+};

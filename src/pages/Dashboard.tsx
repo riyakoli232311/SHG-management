@@ -7,7 +7,7 @@ import {
   Users, PiggyBank, Landmark, AlertCircle, TrendingUp,
   Heart, CalendarCheck, CheckCircle2, Clock, ArrowRight,
   Sparkles, IndianRupee, Activity, BadgeCheck, Wallet,
-  UserCheck, AlertTriangle, Plus, ChevronRight,
+  UserCheck, AlertTriangle, Plus, ChevronRight, Bell
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { dashboardApi, loansApi, savingsApi, membersApi, repaymentsApi } from "@/lib/api";
@@ -80,6 +80,7 @@ export default function Dashboard() {
   const [overdueEMIs, setOverdueEMIs] = useState<any[]>([]);
   const [recentSavings, setRecentSavings] = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
+  const [unseenSchemesCount, setUnseenSchemesCount] = useState(0);
 
   const today = new Date();
   const monthName = today.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
@@ -102,12 +103,37 @@ export default function Dashboard() {
       setLoans(loansRes.data || []);
       setOverdueEMIs((repRes.data || []).slice(0, 5));
       setRecentSavings(savRes.data || []);
+
+      // Calculate unseen schemes
+      if (dashRes.data?.schemes?.length > 0) {
+        const lastVisited = localStorage.getItem('lastVisitedSchemesTime');
+        if (!lastVisited) {
+          setUnseenSchemesCount(dashRes.data.schemes.length);
+        } else {
+          const lastVisitedTime = new Date(lastVisited).getTime();
+          const newSchemes = dashRes.data.schemes.filter(
+            (s: any) => new Date(s.created_at).getTime() > lastVisitedTime
+          );
+          setUnseenSchemesCount(newSchemes.length);
+        }
+      }
+
     } catch (err: any) {
       toast.error("Failed to load dashboard");
     } finally {
       setLoading(false);
     }
   }
+
+  const handleSchemesClick = () => {
+    // Clear notification badge
+    setUnseenSchemesCount(0);
+    localStorage.setItem('lastVisitedSchemesTime', new Date().toISOString());
+    
+    // Smooth scroll
+    const el = document.getElementById("schemes-section");
+    el?.scrollIntoView({ behavior: "smooth" });
+  };
 
   // Derived
   const activeLoans   = loans.filter(l => l.status === "active");
@@ -181,7 +207,23 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="flex gap-3 shrink-0 flex-wrap">
+          <div className="flex gap-3 shrink-0 flex-wrap items-center">
+            {/* Notification Bell */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="relative border-white/60 text-white hover:bg-white/20 bg-white/10 w-9 h-9 p-0 rounded-full"
+              onClick={handleSchemesClick}
+              title="Government Schemes"
+            >
+              <Bell className="w-4 h-4" />
+              {unseenSchemesCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white ring-2 ring-[#C2185B]">
+                  {unseenSchemesCount}
+                </span>
+              )}
+            </Button>
+
             <Link to="/members">
               <Button size="sm" className="bg-white text-[#C2185B] hover:bg-white/90 font-semibold shadow-md gap-1.5">
                 <Plus className="w-3.5 h-3.5" /> Add Member
@@ -508,29 +550,79 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* ── Quick Actions strip ────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { icon: UserCheck,    label: "Add Member",      sub: "Register a new member",  to: "/members",      color: "#C2185B" },
-          { icon: PiggyBank,    label: "Record Saving",   sub: "Log this month's saving", to: "/savings",     color: "#6A1B9A" },
-          { icon: Landmark,     label: "Disburse Loan",   sub: "Issue a new loan",        to: "/loans",       color: "#0288D1" },
-          { icon: CalendarCheck,label: "Collect EMI",     sub: "Mark repayments",         to: "/repayments",  color: "#388E3C" },
-        ].map(({ icon: Icon, label, sub, to, color }) => (
-          <Link to={to} key={label}>
-            <Card className="border-border/50 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 cursor-pointer group">
-              <CardContent className="pt-4 pb-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all group-hover:scale-110"
-                  style={{ backgroundColor: `${color}18` }}>
-                  <Icon className="w-4 h-4" style={{ color }} />
+      {/* ── Row: Admin Info + Schemes & Quick Actions ───────────── */}
+      <div className="grid md:grid-cols-2 gap-5">
+        
+        {/* District Admin Details & Schemes */}
+        <div className="space-y-5">
+          {stats?.adminInfo && (
+            <Card className="border-border/50 shadow-sm bg-gradient-to-r from-gray-50 to-white">
+              <CardContent className="p-5 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#C2185B]/10 flex items-center justify-center shrink-0">
+                    <UserCheck className="w-5 h-5 text-[#C2185B]" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 leading-tight">Your District Admin</h4>
+                    <p className="text-sm text-gray-700 font-medium">{stats.adminInfo.name}</p>
+                    <p className="text-xs text-muted-foreground">{stats.adminInfo.phone_number}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{label}</p>
-                  <p className="text-xs text-muted-foreground">{sub}</p>
+                <div className="hidden sm:block text-right">
+                   <p className="text-xs font-semibold text-[#C2185B]/80 uppercase tracking-wider">{shg?.district || "District"} Zone</p>
                 </div>
               </CardContent>
             </Card>
-          </Link>
-        ))}
+          )}
+
+          {stats?.schemes && stats.schemes.length > 0 && (
+            <Card id="schemes-section" className="border-border/50 shadow-sm scroll-m-6">
+              <CardHeader className="px-5 pt-5 pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#F57C00]" /> Government Schemes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-5 pb-5">
+                <div className="space-y-3">
+                  {stats.schemes.slice(0, 3).map((scheme: any) => (
+                    <div key={scheme.id} className="p-3 bg-orange-50/50 border border-orange-100/50 rounded-xl">
+                      <h5 className="font-semibold text-sm text-gray-900 mb-1">{scheme.title}</h5>
+                      <p className="text-xs text-gray-600 line-clamp-2">{scheme.description}</p>
+                      <p className="text-[10px] text-gray-400 mt-2 font-medium uppercase tracking-wide">
+                        Posted {new Date(scheme.created_at).toLocaleDateString("en-IN")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Quick Actions grid */}
+        <div className="grid grid-cols-2 gap-4 h-fit">
+          {[
+            { icon: UserCheck,    label: "Add Member",      sub: "Register a new member",  to: "/members",      color: "#C2185B" },
+            { icon: PiggyBank,    label: "Record Saving",   sub: "Log this month's saving", to: "/savings",     color: "#6A1B9A" },
+            { icon: Landmark,     label: "Disburse Loan",   sub: "Issue a new loan",        to: "/loans",       color: "#0288D1" },
+            { icon: CalendarCheck,label: "Collect EMI",     sub: "Mark repayments",         to: "/repayments",  color: "#388E3C" },
+          ].map(({ icon: Icon, label, sub, to, color }) => (
+            <Link to={to} key={label} className="h-full">
+              <Card className="border-border/50 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 cursor-pointer group h-full">
+                <CardContent className="p-4 flex flex-col justify-center h-full">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 mb-3"
+                    style={{ backgroundColor: `${color}18` }}>
+                    <Icon className="w-5 h-5" style={{ color }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 mb-0.5">{label}</p>
+                    <p className="text-xs text-muted-foreground">{sub}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
 
     </DashboardLayout>
