@@ -4,13 +4,18 @@ import { requireAuth, requireShg } from '../middleware/authMiddleware.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
 // ── Configure Multer ──────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = path.join(process.cwd(), 'server', 'uploads', 'loans');
+    // Resolve to exactly ../server/uploads/loans relative to this very file (routes/loanRequests.js)
+    const dir = path.join(__dirname, '..', 'uploads', 'loans');
     if (!fs.existsSync(dir)){
       fs.mkdirSync(dir, { recursive: true });
     }
