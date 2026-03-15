@@ -106,15 +106,20 @@ export default function Dashboard() {
 
       // Calculate unseen schemes
       if (dashRes.data?.schemes?.length > 0) {
-        const lastVisited = localStorage.getItem('lastVisitedSchemesTime');
-        if (!lastVisited) {
+        const lastVisitedStr = localStorage.getItem('lastVisitedSchemesTime');
+        if (!lastVisitedStr) {
+          // First time, assume all schemes are unseen
           setUnseenSchemesCount(dashRes.data.schemes.length);
         } else {
-          const lastVisitedTime = new Date(lastVisited).getTime();
-          const newSchemes = dashRes.data.schemes.filter(
-            (s: any) => new Date(s.created_at).getTime() > lastVisitedTime
-          );
-          setUnseenSchemesCount(newSchemes.length);
+          try {
+            const lastVisitedTime = parseInt(lastVisitedStr, 10);
+            const newSchemes = dashRes.data.schemes.filter(
+              (s: any) => new Date(s.created_at).getTime() > lastVisitedTime
+            );
+            setUnseenSchemesCount(newSchemes.length);
+          } catch (e) {
+            setUnseenSchemesCount(dashRes.data.schemes.length);
+          }
         }
       }
 
@@ -126,13 +131,16 @@ export default function Dashboard() {
   }
 
   const handleSchemesClick = () => {
-    // Clear notification badge
+    // Clear notification badge instantly
     setUnseenSchemesCount(0);
-    localStorage.setItem('lastVisitedSchemesTime', new Date().toISOString());
+    // Store the exact current time in ms
+    localStorage.setItem('lastVisitedSchemesTime', new Date().getTime().toString());
     
-    // Smooth scroll
-    const el = document.getElementById("schemes-section");
-    el?.scrollIntoView({ behavior: "smooth" });
+    // Smooth scroll down to the schemes section
+    setTimeout(() => {
+      const el = document.getElementById("schemes-section");
+      el?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
   };
 
   // Derived

@@ -1,0 +1,60 @@
+
+Table: members
+  id: integer
+  shg_id: integer
+  age: integer
+  income: numeric
+  joined_date: date
+  bpl_status: boolean
+  updated_at: timestamp without time zone
+  created_at: timestamp without time zone
+  status: character varying
+  village: character varying
+  gram_panchayat: character varying
+  block: character varying
+  district: character varying
+  state: character varying
+  pin_code: character varying
+  husband_name: character varying
+  occupation: character varying
+  role: character varying
+  bank_account: character varying
+  name: character varying
+  phone: character varying
+  bank_ifsc: character varying
+  caste_category: character varying
+  aadhar: character varying
+  password_hash: text
+
+Table: shg_info
+  id: integer
+  user_id: integer
+  formation_date: date
+  updated_at: timestamp without time zone
+  created_at: timestamp without time zone
+  block: character varying
+  district: character varying
+  state: character varying
+  ifsc: character varying
+  bank_name: character varying
+  bank_account: character varying
+  name: character varying
+  registration_number: character varying
+  village: character varying
+
+Table: government_schemes
+  id: integer
+  admin_id: integer
+  created_at: timestamp without time zone
+  title: character varying
+  description: text
+
+Table: admins
+  created_at: timestamp without time zone
+  id: integer
+  password_hash: character varying
+  name: character varying
+  phone_number: character varying
+  state: character varying
+  district: character varying
+  email: character varying

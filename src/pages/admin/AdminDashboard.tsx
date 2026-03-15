@@ -149,10 +149,17 @@ export default function AdminDashboard() {
 
       <Dialog open={!!selectedShgId} onOpenChange={(open) => !open && setSelectedShgId(null)}>
         <DialogContent className="max-w-2xl bg-white border-none shadow-2xl overflow-hidden p-0">
-          {detailsLoading || !shgDetails ? (
+          {detailsLoading ? (
             <div className="p-12 flex justify-center items-center flex-col gap-4">
               <Loader2 className="w-8 h-8 text-[#C2185B] animate-spin" />
               <p className="text-gray-500 text-sm">Loading SHG details...</p>
+            </div>
+          ) : !shgDetails ? (
+            <div className="p-12 flex justify-center items-center flex-col gap-4 text-center">
+              <AlertCircle className="w-10 h-10 text-red-500 mb-2" />
+              <p className="text-gray-800 font-medium">Failed to load details.</p>
+              <p className="text-gray-500 text-sm">The requested SHG information could not be found or an error occurred.</p>
+              <button onClick={() => setSelectedShgId(null)} className="mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition-colors">Close</button>
             </div>
           ) : (
             <>

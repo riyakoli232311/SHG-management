@@ -42,26 +42,24 @@ router.get('/', requireShg, async (req, res) => {
     let schemes = [];
 
     if (shgInfo?.district) {
-      console.log(`Checking schemes for District: "${shgInfo.district}"`);
-      // Find the admin assigned to this district
+      console.log(`Fetching schemes for District: "${shgInfo.district}"`);
+      // Join government_schemes and admins to find any scheme posted by an admin of the same district
+      schemes = await sql`
+        SELECT gs.id, gs.title, gs.description, gs.created_at
+        FROM government_schemes gs
+        JOIN admins a ON gs.admin_id = a.id
+        WHERE LOWER(TRIM(a.district)) = LOWER(TRIM(${shgInfo.district}))
+        ORDER BY gs.created_at DESC
+      `;
+      // Optionally just map the first matching admin if needed in the UI
       const [admin] = await sql`
         SELECT id, name, email, phone_number 
         FROM admins 
         WHERE LOWER(TRIM(district)) = LOWER(TRIM(${shgInfo.district})) 
         LIMIT 1
       `;
-      
-      console.log(`Matched Admin:`, admin ? admin.name : 'None found');
-      
       if (admin) {
         adminInfo = admin;
-        // Fetch schemes posted by this admin
-        schemes = await sql`
-          SELECT id, title, description, created_at
-          FROM government_schemes
-          WHERE admin_id = ${admin.id}
-          ORDER BY created_at DESC
-        `;
       }
     }
 

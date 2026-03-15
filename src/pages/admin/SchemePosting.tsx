@@ -49,7 +49,7 @@ export default function SchemePosting() {
 
     setSubmitting(true);
     try {
-      await adminApi.postScheme({ title, description });
+      await adminApi.createScheme({ title, description });
       toast.success('Scheme posted successfully!');
       setTitle('');
       setDescription('');

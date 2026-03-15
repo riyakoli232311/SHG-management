@@ -157,9 +157,11 @@ router.get('/shgs/:id', requireAdminAuth, async (req, res) => {
     // Fetch members looking for office bearers
     const members = await sql`SELECT id, name, role, phone FROM members WHERE shg_id = ${shgId}`;
     
-    const president = members.find(m => m.role === 'president') || null;
-    const secretary = members.find(m => m.role === 'secretary') || null;
-    const treasurer = members.find(m => m.role === 'treasurer') || null;
+    // Safely check role and default
+    const mList = members || [];
+    const president = mList.find(m => m.role && m.role.toLowerCase() === 'president') || null;
+    const secretary = mList.find(m => m.role && m.role.toLowerCase() === 'secretary') || null;
+    const treasurer = mList.find(m => m.role && m.role.toLowerCase() === 'treasurer') || null;
 
     // Fetch savings and loans stats
     const [savingsResult] = await sql`SELECT COALESCE(SUM(amount), 0) as total FROM savings WHERE shg_id = ${shgId}`;
