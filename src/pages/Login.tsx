@@ -1,17 +1,20 @@
-// src/pages/Login.tsx  (REPLACE your existing Login.tsx)
+// src/pages/Login.tsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { HeartHandshake, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, memberLogin } = useAuth();
   const navigate = useNavigate();
+  const [role, setRole] = useState<'leader' | 'member'>('leader');
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,8 +23,13 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      if (role === 'leader') {
+        await login(email, password);
+        navigate('/dashboard');
+      } else {
+        await memberLogin(name, password);
+        navigate('/member/loans');
+      }
     } catch (err: any) {
       toast.error(err.message || 'Login failed');
     } finally {
@@ -38,19 +46,43 @@ export default function Login() {
           <p className="text-white/80 text-sm mt-1">Empowering Women. Enabling Growth.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-5">
-          <h2 className="text-xl font-semibold text-center text-gray-800">Welcome Back</h2>
+        <div className="p-8 pb-4">
+          <Tabs value={role} onValueChange={(v) => setRole(v as 'leader' | 'member')} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-pink-50">
+              <TabsTrigger value="leader" className="data-[state=active]:bg-[#C2185B] data-[state=active]:text-white">SHG Leader</TabsTrigger>
+              <TabsTrigger value="member" className="data-[state=active]:bg-[#C2185B] data-[state=active]:text-white">SHG Member</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-5">
+          <h2 className="text-xl font-semibold text-center text-gray-800">
+            {role === 'leader' ? 'Leader Login' : 'Member Login'}
+          </h2>
 
           <div className="space-y-1">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
+            <Label htmlFor={role === 'leader' ? 'email' : 'name'}>
+              {role === 'leader' ? 'Email' : 'Full Name'}
+            </Label>
+            {role === 'leader' ? (
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            ) : (
+              <Input
+                id="name"
+                type="text"
+                placeholder="Your Full Name"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required
+              />
+            )}
           </div>
 
           <div className="space-y-1">
@@ -87,12 +119,6 @@ export default function Login() {
               New to SakhiSahyog?{' '}
               <Link to="/signup" className="text-[#C2185B] font-medium hover:underline">
                 Create account
-              </Link>
-            </span>
-            <span>
-              Are you a Member?{' '}
-              <Link to="/member-login" className="text-[#C2185B] font-medium hover:underline">
-                Member Login
               </Link>
             </span>
           </p>

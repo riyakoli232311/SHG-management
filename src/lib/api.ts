@@ -32,13 +32,20 @@ export const authApi = {
   logout: () => request<any>('POST', '/api/auth/logout'),
 
   me: () => request<any>('GET', '/api/auth/me'),
-  // ADD this method inside the authApi object in src/lib/api.ts
-  memberLogin: (data: { phone: string; aadhar: string }) =>
+
+  memberLogin: (data: { name: string; password: string }) =>
     request<any>('POST', '/api/auth/member-login', data),
 
+  memberSignup: (data: { name: string; phone: string; aadhar: string; shg_id: string; password: string }) =>
+    request<any>('POST', '/api/auth/member-signup', data),
+
+  getShgList: (district?: string) => {
+    const qs = district ? `?district=${encodeURIComponent(district)}` : '';
+    return request<any>('GET', `/api/auth/shgs${qs}`);
+  },
+
   changePassword: (data: { current: string; newPassword: string }) =>
-  request<any>('POST', '/api/auth/change-password', data),
-  
+    request<any>('POST', '/api/auth/change-password', data),
 };
 
 // ── SHG ───────────────────────────────────────────────────────

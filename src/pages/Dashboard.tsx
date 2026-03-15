@@ -555,7 +555,7 @@ export default function Dashboard() {
         
         {/* District Admin Details & Schemes */}
         <div className="space-y-5">
-          {stats?.adminInfo && (
+          {stats?.adminInfo ? (
             <Card className="border-border/50 shadow-sm bg-gradient-to-r from-gray-50 to-white">
               <CardContent className="p-5 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -573,16 +573,26 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
+          ) : (
+            <Card className="border-border/50 shadow-sm bg-gray-50/50">
+              <CardContent className="p-5 flex flex-col items-center justify-center text-center gap-2">
+                <UserCheck className="w-6 h-6 text-gray-400" />
+                <div>
+                  <h4 className="text-sm font-bold text-gray-700">District Admin</h4>
+                  <p className="text-xs text-muted-foreground">No admin has been assigned directly to {shg?.district || "your"} district yet.</p>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
-          {stats?.schemes && stats.schemes.length > 0 && (
-            <Card id="schemes-section" className="border-border/50 shadow-sm scroll-m-6">
-              <CardHeader className="px-5 pt-5 pb-3">
-                <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#F57C00]" /> Government Schemes
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-5 pb-5">
+          <Card id="schemes-section" className="border-border/50 shadow-sm scroll-m-6">
+            <CardHeader className="px-5 pt-5 pb-3">
+              <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#F57C00]" /> Government Schemes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+            {stats?.schemes && stats.schemes.length > 0 ? (
                 <div className="space-y-3">
                   {stats.schemes.slice(0, 3).map((scheme: any) => (
                     <div key={scheme.id} className="p-3 bg-orange-50/50 border border-orange-100/50 rounded-xl">
@@ -594,9 +604,13 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <div className="py-4 text-center">
+                  <p className="text-sm text-gray-500">No new scheme notifications for your district.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Actions grid */}

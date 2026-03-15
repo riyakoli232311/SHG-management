@@ -25,8 +25,9 @@ interface AuthContextType {
   onboarded: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  memberLogin: (phone: string, aadhar: string) => Promise<void>;
+  memberLogin: (name: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
+  memberSignup: (name: string, phone: string, aadhar: string, shg_id: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -69,8 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setOnboarded(false);
   };
 
-  const memberLogin = async (phone: string, aadhar: string) => {
-    const res = await authApi.memberLogin({ phone, aadhar });
+  const memberSignup = async (name: string, phone: string, aadhar: string, shg_id: string, password: string) => {
+    const res = await authApi.memberSignup({ name, phone, aadhar, shg_id, password });
+    setUser(res.user);
+    setOnboarded(true);
+  };
+
+  const memberLogin = async (name: string, password: string) => {
+    const res = await authApi.memberLogin({ name, password });
     setUser(res.user);
     setOnboarded(true); // Members don't have an onboarding flow, they are part of an SHG
   };
@@ -83,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, shg, onboarded, loading, login, memberLogin, signup, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, shg, onboarded, loading, login, memberLogin, signup, memberSignup, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

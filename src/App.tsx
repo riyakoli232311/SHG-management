@@ -27,7 +27,6 @@ import Profile from "./pages/Profile";
 import SHGs from "./pages/SHGs";
 import NotFound from "./pages/NotFound";
 
-import MemberLogin from "./pages/MemberLogin";
 import MemberLoanDashboard from "./pages/MemberLoanDashboard";
 import LeaderLoanApproval from "./pages/LeaderLoanApproval";
 
@@ -51,7 +50,6 @@ const App = () => (
             {/* Public routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/member-login" element={<MemberLogin />} />
             <Route path="/signup" element={<Signup />} />
             
             {/* Admin routes */}

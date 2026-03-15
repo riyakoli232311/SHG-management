@@ -223,4 +223,30 @@ router.post('/member-signup', async (req, res) => {
   }
 });
 
+// ── GET /api/auth/shgs ───────────────────────────────────────
+router.get('/shgs', async (req, res) => {
+  try {
+    const { district } = req.query;
+    const sql = getDb();
+    
+    let shgs;
+    if (district) {
+      shgs = await sql`
+        SELECT id, name FROM shg_info
+        WHERE district ILIKE ${'%' + district + '%'}
+        ORDER BY name ASC
+      `;
+    } else {
+      shgs = await sql`
+        SELECT id, name FROM shg_info
+        ORDER BY name ASC
+      `;
+    }
+    res.json({ success: true, shgs });
+  } catch (err) {
+    console.error('Fetch SHGs error:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch SHGs' });
+  }
+});
+
 export default router;

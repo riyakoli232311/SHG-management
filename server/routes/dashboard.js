@@ -42,13 +42,16 @@ router.get('/', requireShg, async (req, res) => {
     let schemes = [];
 
     if (shgInfo?.district) {
+      console.log(`Checking schemes for District: "${shgInfo.district}"`);
       // Find the admin assigned to this district
       const [admin] = await sql`
         SELECT id, name, email, phone_number 
         FROM admins 
-        WHERE LOWER(district) = LOWER(${shgInfo.district}) 
+        WHERE LOWER(TRIM(district)) = LOWER(TRIM(${shgInfo.district})) 
         LIMIT 1
       `;
+      
+      console.log(`Matched Admin:`, admin ? admin.name : 'None found');
       
       if (admin) {
         adminInfo = admin;
