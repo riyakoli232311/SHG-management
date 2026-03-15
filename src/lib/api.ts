@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/lib/api.ts
 // Centralised API client — replaces all mock data imports.
 // All requests include credentials (cookies) automatically.

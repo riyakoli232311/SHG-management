@@ -1,0 +1,1 @@
+Members: id, shg_id, age, income, joined_date, bpl_status, updated_at, created_at, status, village, gram_panchayat, block, district, state, pin_code, husband_name, occupation, role, bank_account, name, phone, bank_ifsc, caste_category, aadhar, password_hash
