@@ -21,7 +21,9 @@ const EMPTY_FORM = {
   amount: "",
   purpose: "",
   duration: "12",
-  documents: [] as any[] // Mocked docs
+  aadhar_number: "",
+  aadhar_image: null as File | null,
+  passbook_image: null as File | null
 };
 
 export default function MemberLoanDashboard() {
@@ -52,26 +54,27 @@ export default function MemberLoanDashboard() {
 
   async function handleApply(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.amount || !form.purpose) {
+    if (!form.amount || !form.purpose || !form.aadhar_number) {
       toast.error("Please fill all required fields");
+      return;
+    }
+    if (!form.aadhar_image || !form.passbook_image) {
+      toast.error("Please upload both Aadhaar and Passbook images");
       return;
     }
 
     setSubmitting(true);
     try {
-      // Create mock documents
-      const docs = [
-        { type: "Aadhaar Card", path: "/mock-docs/aadhaar.pdf" },
-        { type: "Bank Passbook", path: "/mock-docs/passbook.pdf" }
-      ];
+      const formData = new FormData();
+      if (user?.id) formData.append('member_id', user.id);
+      formData.append('amount', form.amount);
+      formData.append('purpose', form.purpose);
+      formData.append('duration', form.duration);
+      formData.append('aadhar_number', form.aadhar_number);
+      formData.append('aadhar_image', form.aadhar_image);
+      formData.append('passbook_image', form.passbook_image);
 
-      await loanRequestsApi.apply({
-        member_id: user?.id,
-        amount: Number(form.amount),
-        purpose: form.purpose,
-        duration: Number(form.duration),
-        documents: docs
-      });
+      await loanRequestsApi.apply(formData);
       
       toast.success("Loan requested successfully!");
       setShowApply(false);
@@ -214,11 +217,38 @@ export default function MemberLoanDashboard() {
               />
             </div>
             
-            <div className="pt-2">
-              <Label className="text-xs font-semibold text-muted-foreground mb-2 block border-t pt-4">Documents Required</Label>
-              <div className="flex gap-2">
-                <div className="text-xs border px-3 py-1.5 rounded-full bg-gray-50 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> Aadhaar Card (Auto-linked)</div>
-                <div className="text-xs border px-3 py-1.5 rounded-full bg-gray-50 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> Passbook (Auto-linked)</div>
+            <div className="space-y-1.5">
+              <Label>Aadhaar Card Number *</Label>
+              <Input 
+                type="text" 
+                placeholder="0000 0000 0000"
+                value={form.aadhar_number}
+                onChange={e => setForm({...form, aadhar_number: e.target.value})}
+                required
+              />
+            </div>
+
+            <div className="pt-2 border-t mt-4">
+              <Label className="text-sm font-semibold text-gray-800 mb-3 block">Upload Documents *</Label>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Aadhaar Card Image</Label>
+                  <Input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={e => setForm({...form, aadhar_image: e.target.files?.[0] || null})}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Bank Passbook (Front Page)</Label>
+                  <Input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={e => setForm({...form, passbook_image: e.target.files?.[0] || null})}
+                    required
+                  />
+                </div>
               </div>
             </div>
 

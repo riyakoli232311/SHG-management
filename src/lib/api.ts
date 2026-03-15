@@ -9,12 +9,18 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
+  isFormData = false
 ): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (body && !isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     credentials: 'include', // send httpOnly cookie
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined,
+    headers,
+    body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
   });
 
   const json = await res.json();
@@ -120,8 +126,8 @@ export const loansApi = {
 
 // ── Loan Requests (Module) ────────────────────────────────────
 export const loanRequestsApi = {
-  apply: (data: { member_id?: string; amount: number; purpose: string; duration: number; documents: any[] }) =>
-    request<any>('POST', '/api/loan/apply', data),
+  apply: (data: FormData) =>
+    request<any>('POST', '/api/loan/apply', data, true),
 
   getMemberLoans: (member_id?: string) => {
     const qs = member_id ? `?member_id=${member_id}` : '';

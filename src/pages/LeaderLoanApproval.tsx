@@ -86,7 +86,6 @@ export default function LeaderLoanApproval() {
                   </div>
                 </div>
 
-                {/* Info Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-4 flex-1">
                   <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100/50">
                     <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Purpose</p>
@@ -96,10 +95,14 @@ export default function LeaderLoanApproval() {
                     <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Duration</p>
                     <p className="text-sm font-medium text-gray-800">{req.duration} Months</p>
                   </div>
+                  <div className="col-span-2 bg-gray-50 p-2.5 rounded-xl border border-gray-100/50">
+                    <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Aadhaar Card Number</p>
+                    <p className="text-sm font-mono font-medium tracking-widest text-[#6A1B9A]">{req.aadhar_number || 'N/A'}</p>
+                  </div>
                   
                   {/* Trust Score & Savings */}
                   <div className="col-span-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 p-3 rounded-xl flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-centershrink-0 border border-blue-100 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0 border border-blue-100">
                       <ShieldCheck className={`w-5 h-5 ${req.trust_score > 70 ? 'text-green-500' : req.trust_score > 40 ? 'text-amber-500' : 'text-red-500'}`} />
                     </div>
                     <div className="flex-1">
@@ -120,13 +123,22 @@ export default function LeaderLoanApproval() {
                 {/* Documents preview */}
                 <div className="mb-4">
                   <p className="text-[11px] font-semibold text-muted-foreground uppercase mb-2">Attached Documents</p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {req.documents && req.documents.length > 0 ? (
-                      req.documents.map((d: any) => (
-                        <div key={d.doc_id} className="text-xs border px-2.5 py-1.5 rounded-md bg-white flex items-center gap-1.5 text-gray-600">
-                          <FileText className="w-3.5 h-3.5 text-[#C2185B]" /> {d.document_type}
-                        </div>
-                      ))
+                      req.documents.map((d: any) => {
+                        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                        return (
+                          <a 
+                            key={d.doc_id} 
+                            href={`${baseUrl}${d.file_path}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs border px-3 py-2 rounded-lg bg-gray-50 flex items-center gap-2 text-[#C2185B] font-semibold hover:bg-rose-50 hover:border-rose-200 transition-colors cursor-pointer"
+                          >
+                            <FileText className="w-4 h-4 text-[#C2185B]" /> {d.document_type}
+                          </a>
+                        );
+                      })
                     ) : (
                       <span className="text-xs text-muted-foreground italic">Basic KYC verified automatically</span>
                     )}
