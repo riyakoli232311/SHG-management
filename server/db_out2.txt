@@ -1,1 +1,0 @@
-Admins: created_at, id, password_hash, name, phone_number, state, district, email
