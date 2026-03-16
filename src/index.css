@@ -1,0 +1,294 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SakhiSahyog Design System
+   Theme: Women Empowerment - Modern, Warm, Inspiring
+   Primary: #C2185B (Pink/Magenta) - Empowerment, Energy, Warmth
+   Secondary: #6A1B9A (Purple) - Wisdom, Dignity, Community
+   Accent: #FBC02D (Gold/Yellow) - Prosperity, Success, Hope
+   Target: Women's Self Help Groups - Digital Financial Empowerment
+*/
+
+@layer base {
+  :root {
+    /* Core backgrounds - Soft warm gradient feel */
+    --background: 0 0% 100%;
+    --foreground: 280 20% 15%;
+
+    /* Card surfaces - Clean white with subtle warmth */
+    --card: 0 0% 100%;
+    --card-foreground: 280 20% 15%;
+
+    /* Popover/dropdown */
+    --popover: 0 0% 100%;
+    --popover-foreground: 280 20% 15%;
+
+    /* Primary: Deep Pink/Magenta #C2185B - Empowerment, Energy */
+    --primary: 340 82% 43%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Royal Purple #6A1B9A - Wisdom, Dignity */
+    --secondary: 285 70% 35%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted surfaces - Soft pink tint */
+    --muted: 340 30% 96%;
+    --muted-foreground: 280 15% 45%;
+
+    /* Accent: Golden Yellow #FBC02D - Prosperity, Success */
+    --accent: 45 97% 58%;
+    --accent-foreground: 280 30% 15%;
+
+    /* Destructive: Soft Red for warnings */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success: Emerald Green - Growth, Progress */
+    --success: 160 60% 40%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning: Amber */
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 95% 15%;
+
+    /* Info: Soft Purple */
+    --info: 270 60% 55%;
+    --info-foreground: 0 0% 100%;
+
+    /* Borders and inputs - Soft pink-gray */
+    --border: 340 20% 90%;
+    --input: 340 20% 90%;
+    --ring: 340 82% 43%;
+
+    --radius: 1rem;
+
+    /* Sidebar - Deep purple for elegance */
+    --sidebar-background: 285 50% 18%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 340 82% 43%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 285 45% 25%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 285 35% 25%;
+    --sidebar-ring: 45 97% 58%;
+
+    /* Custom gradients - Women empowerment theme */
+    --gradient-hero: linear-gradient(135deg, #C2185B 0%, #6A1B9A 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(340 30% 98%) 100%);
+    --gradient-accent: linear-gradient(135deg, #FBC02D 0%, #F57F17 100%);
+    --gradient-soft: linear-gradient(135deg, #FFF5F7 0%, #FFFFFF 50%, #F3E5F5 100%);
+    --gradient-warm: linear-gradient(180deg, rgba(194, 24, 91, 0.06) 0%, rgba(255, 255, 255, 0) 100%);
+
+    /* Shadows - Soft pink tinted */
+    --shadow-sm: 0 1px 2px 0 rgba(194, 24, 91, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(194, 24, 91, 0.08), 0 2px 4px -2px rgba(106, 27, 154, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(194, 24, 91, 0.1), 0 4px 6px -4px rgba(106, 27, 154, 0.08);
+    --shadow-card: 0 4px 20px -4px rgba(194, 24, 91, 0.12), 0 8px 32px -8px rgba(106, 27, 154, 0.08);
+    --shadow-glow: 0 0 40px -10px rgba(194, 24, 91, 0.3);
+  }
+
+  .dark {
+    --background: 280 25% 8%;
+    --foreground: 340 20% 95%;
+
+    --card: 280 20% 12%;
+    --card-foreground: 340 20% 95%;
+
+    --popover: 280 20% 12%;
+    --popover-foreground: 340 20% 95%;
+
+    --primary: 340 70% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 285 50% 25%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 280 15% 18%;
+    --muted-foreground: 340 10% 60%;
+
+    --accent: 45 85% 55%;
+    --accent-foreground: 280 30% 10%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 60% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 280 15% 20%;
+    --input: 280 15% 20%;
+    --ring: 340 70% 55%;
+
+    --sidebar-background: 285 30% 10%;
+    --sidebar-foreground: 340 15% 90%;
+    --sidebar-primary: 340 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 285 25% 15%;
+    --sidebar-accent-foreground: 340 15% 90%;
+    --sidebar-border: 285 20% 18%;
+    --sidebar-ring: 45 85% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Large readable fonts for accessibility */
+  html {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Hero gradient background */
+  .bg-hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  /* Card with custom shadow */
+  .card-shadow {
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Accent gradient for CTAs */
+  .bg-accent-gradient {
+    background: var(--gradient-accent);
+  }
+
+  /* Status badges */
+  .status-paid {
+    @apply bg-success/10 text-success border-success/20;
+  }
+
+  .status-pending {
+    @apply bg-warning/10 text-warning border-warning/20;
+  }
+
+  .status-overdue {
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+
+  .status-active {
+    @apply bg-primary/10 text-primary border-primary/20;
+  }
+
+  /* Table row hover */
+  .table-row-hover {
+    @apply transition-colors hover:bg-muted/50;
+  }
+
+  /* Sidebar item active */
+  .sidebar-item-active {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  }
+}
+
+@layer utilities {
+  /* Glass effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md;
+  }
+
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Smooth scrolling */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Women Empowerment Theme Utilities */
+  .bg-empowerment-gradient {
+    background: linear-gradient(135deg, #C2185B 0%, #6A1B9A 100%);
+  }
+
+  .bg-soft-gradient {
+    background: linear-gradient(135deg, #FFF5F7 0%, #FFFFFF 50%, #F3E5F5 100%);
+  }
+
+  .bg-warm-gradient {
+    background: linear-gradient(180deg, rgba(194, 24, 91, 0.06) 0%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #C2185B 0%, #6A1B9A 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .btn-gradient {
+    background: linear-gradient(135deg, #C2185B 0%, #AD1457 100%);
+    transition: all 0.3s ease;
+  }
+
+  .btn-gradient:hover {
+    background: linear-gradient(135deg, #AD1457 0%, #880E4F 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(194, 24, 91, 0.4);
+  }
+
+  .btn-accent-gradient {
+    background: linear-gradient(135deg, #FBC02D 0%, #F57F17 100%);
+    transition: all 0.3s ease;
+  }
+
+  .btn-accent-gradient:hover {
+    background: linear-gradient(135deg, #F9A825 0%, #EF6C00 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(251, 192, 45, 0.4);
+  }
+
+  .card-empowerment {
+    @apply bg-white rounded-2xl shadow-card;
+    transition: all 0.3s ease;
+  }
+
+  .card-empowerment:hover {
+    @apply shadow-card-hover;
+    transform: translateY(-4px);
+  }
+
+  .icon-empowerment {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center;
+    background: linear-gradient(135deg, rgba(194, 24, 91, 0.1) 0%, rgba(106, 27, 154, 0.1) 100%);
+  }
+
+  .border-empowerment {
+    border: 1px solid rgba(194, 24, 91, 0.15);
+  }
+
+  /* Animation utilities */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px -5px rgba(194, 24, 91, 0.3); }
+    50% { box-shadow: 0 0 40px -5px rgba(194, 24, 91, 0.5); }
+  }
+}
