@@ -26,6 +26,8 @@ import SettingsPage from "./pages/Settings";
 import Profile from "./pages/Profile";
 import SHGs from "./pages/SHGs";
 import NotFound from "./pages/NotFound";
+import Meetings from "./pages/Meeting";
+import MeetingAttendance from "./pages/MeetingAttendance";
 
 import MemberLoanDashboard from "./pages/MemberLoanDashboard";
 import LeaderLoanApproval from "./pages/LeaderLoanApproval";
@@ -80,6 +82,8 @@ const App = () => (
             <Route path="/member/loans" element={<ProtectedRoute><MemberLoanDashboard /></ProtectedRoute>} />
             <Route path="/leader/loans/verify" element={<ProtectedRoute><LeaderLoanApproval /></ProtectedRoute>} />
             <Route path="/repayments" element={<ProtectedRoute><Repayments /></ProtectedRoute>} />
+            <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
+            <Route path="/meeting-attendance" element={<ProtectedRoute><MeetingAttendance /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />

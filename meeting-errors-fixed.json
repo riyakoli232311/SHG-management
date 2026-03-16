@@ -1,0 +1,29 @@
+[
+  {
+    "file": "C:\\Users\\ASUS\\OneDrive\\Documents\\GitHub\\SHG-management\\src\\pages\\Meeting.tsx",
+    "errors": [
+      "Unexpected any. Specify a different type. at line 54",
+      "Unexpected any. Specify a different type. at line 62",
+      "Unexpected any. Specify a different type. at line 65",
+      "Unexpected any. Specify a different type. at line 77",
+      "Unexpected any. Specify a different type. at line 109",
+      "Unexpected any. Specify a different type. at line 116",
+      "Unexpected any. Specify a different type. at line 151",
+      "Unexpected any. Specify a different type. at line 166"
+    ]
+  },
+  {
+    "file": "C:\\Users\\ASUS\\OneDrive\\Documents\\GitHub\\SHG-management\\src\\pages\\MeetingAttendance.tsx",
+    "errors": [
+      "Unexpected any. Specify a different type. at line 42",
+      "Unexpected any. Specify a different type. at line 43",
+      "Unexpected any. Specify a different type. at line 50",
+      "Unexpected any. Specify a different type. at line 53",
+      "Unexpected any. Specify a different type. at line 74",
+      "Unexpected any. Specify a different type. at line 95",
+      "Unexpected any. Specify a different type. at line 102",
+      "Unexpected any. Specify a different type. at line 123",
+      "Unexpected any. Specify a different type. at line 138"
+    ]
+  }
+]

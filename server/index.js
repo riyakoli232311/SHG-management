@@ -14,6 +14,8 @@ import dashboardRoutes from './routes/dashboard.js';
 import chatRoutes from './routes/chat.js';
 import adminRoutes from './routes/admin.js';
 import loanReqRoutes from './routes/loanRequests.js';
+import meetingsRoutes from './routes/meetings.js';
+import meetingAttendanceRoutes from './routes/meetingAttendance.js';
 
 dotenv.config();
 
@@ -57,6 +59,8 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/loan', loanReqRoutes);
+app.use('/api/meetings', meetingsRoutes);
+app.use('/api/meeting-attendance', meetingAttendanceRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
