@@ -1,0 +1,1 @@
+SHG_Info: id, user_id, formation_date, updated_at, created_at, block, district, state, ifsc, bank_name, bank_account, name, registration_number, village
