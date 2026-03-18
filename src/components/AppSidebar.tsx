@@ -30,7 +30,6 @@ import {
 
 const LEADER_NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Users, label: "SHGs", path: "/shgs" },
   { icon: Users, label: "Members", path: "/members" },
   { icon: CalendarCheck, label: "Meetings", path: "/meetings" },
   { icon: PiggyBank, label: "Finance", path: "/savings" },

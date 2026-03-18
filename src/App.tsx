@@ -24,7 +24,6 @@ import Reports from "./pages/Reports";
 import Chatbot from "./pages/Chatbot";
 import SettingsPage from "./pages/Settings";
 import Profile from "./pages/Profile";
-import SHGs from "./pages/SHGs";
 import NotFound from "./pages/NotFound";
 import Meetings from "./pages/Meeting";
 import MeetingAttendance from "./pages/MeetingAttendance";
@@ -74,7 +73,6 @@ const App = () => (
 
             {/* Protected routes — auth + onboarding required */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/shgs" element={<ProtectedRoute><SHGs /></ProtectedRoute>} />
             <Route path="/members" element={<ProtectedRoute><Members /></ProtectedRoute>} />
             <Route path="/members/:memberId" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />
             <Route path="/savings" element={<ProtectedRoute><Savings /></ProtectedRoute>} />

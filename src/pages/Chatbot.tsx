@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useRef, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Bot, User, Sparkles, Trash2, Loader2, ChevronDown } from "lucide-react";
-import { currentUser, shgInfo } from "@/data/users";
+import { useAuth } from "@/contexts/AuthContext";
+import { shgApi } from "@/lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,20 +28,23 @@ const LANGUAGES = [
   { code: "bn", label: "বাংলা", flag: "🇮🇳" },
 ];
 
-const buildSystemPrompt = (langCode: string) => {
+const buildSystemPrompt = (langCode: string, shg: any, userName: string, userRole: string) => {
   const langInstruction =
     langCode === "en"
       ? "Always respond in English only."
       : `Always respond in ${LANGUAGES.find((l) => l.code === langCode)?.label} only. Do not mix languages.`;
 
-  return `You are Sakhi, an AI assistant for ${shgInfo.name}, a Self Help Group (SHG) based in ${shgInfo.village}, ${shgInfo.district}, ${shgInfo.state}. You are warm, supportive, and knowledgeable about:
+  const shgName = shg?.name || "your SHG";
+  const location = [shg?.village, shg?.district, shg?.state].filter(Boolean).join(", ");
+
+  return `You are Sakhi, an AI assistant for ${shgName}, a Self Help Group (SHG)${location ? ` based in ${location}` : ""}. You are warm, supportive, and knowledgeable about:
 - SHG operations, savings, and loan management
 - Microfinance and rural banking
 - Women's empowerment and financial literacy
 - Indian government schemes for SHGs (NRLM, DAY-NRLM, SHG-Bank linkage, etc.)
 - Record keeping and accounting for SHGs
 
-The current user is ${currentUser.name}, who is the ${currentUser.role} of the group. The group was formed on ${shgInfo.formation_date} and has a monthly savings target of ₹${shgInfo.monthly_saving} per member.
+The current user is ${userName}, who is the ${userRole} of the group.${shg?.formation_date ? ` The group was formed on ${shg.formation_date}.` : ""}
 
 Keep responses concise, friendly, and practical. Use simple language. When discussing money, use Indian currency format (₹). ${langInstruction}`;
 };
@@ -52,17 +57,42 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 export default function Chatbot() {
+  const { user } = useAuth();
+  const [shg, setShg] = useState<any>(null);
   const [language, setLanguage] = useState(LANGUAGES[0]);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: `Namaste ${currentUser.name}! 🙏 I'm Sakhi, your AI assistant for ${shgInfo.name}. I can help you with loan calculations, savings tracking, government schemes, record keeping, and more. How can I assist you today?`,
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    shgApi.get()
+      .then((res) => setShg(res.data || res))
+      .catch(() => {});
+  }, []);
+
+  // Set welcome message once user is available
+  useEffect(() => {
+    if (user && messages.length === 0) {
+      setMessages([{
+        role: "assistant",
+        content: `Namaste ${user.name}! 🙏 I'm Sakhi, your AI assistant for ${shg?.name || "your SHG"}. I can help you with loan calculations, savings tracking, government schemes, record keeping, and more. How can I assist you today?`,
+      }]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Update SHG name in welcome message once SHG data loads (only if still on welcome)
+  useEffect(() => {
+    if (shg && user && messages.length === 1 && messages[0].role === "assistant") {
+      setMessages([{
+        role: "assistant",
+        content: `Namaste ${user.name}! 🙏 I'm Sakhi, your AI assistant for ${shg.name}. I can help you with loan calculations, savings tracking, government schemes, record keeping, and more. How can I assist you today?`,
+      }]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shg]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -90,7 +120,15 @@ export default function Chatbot() {
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages: [
-            { role: "system", content: buildSystemPrompt(language.code) },
+            {
+              role: "system",
+              content: buildSystemPrompt(
+                language.code,
+                shg,
+                user?.name || "Leader",
+                user?.role || "leader"
+              ),
+            },
             ...newMessages.map((m) => ({ role: m.role, content: m.content })),
           ],
           temperature: 0.7,
@@ -98,9 +136,7 @@ export default function Chatbot() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Groq API error: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
 
       const data = await response.json();
       const reply =
@@ -108,13 +144,12 @@ export default function Chatbot() {
         "Sorry, I couldn't get a response. Please try again.";
 
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content:
-            "⚠️ I'm having trouble connecting right now. Please check your internet connection and try again.",
+          content: "⚠️ I'm having trouble connecting right now. Please check your internet connection and try again.",
         },
       ]);
     } finally {
@@ -124,36 +159,35 @@ export default function Chatbot() {
   };
 
   const clearChat = () => {
-    setMessages([
-      {
-        role: "assistant",
-        content: `Namaste ${currentUser.name}! 🙏 I'm Sakhi, your AI assistant for ${shgInfo.name}. How can I help you today?`,
-      },
-    ]);
+    setMessages([{
+      role: "assistant",
+      content: `Namaste ${user?.name}! 🙏 I'm Sakhi, your AI assistant for ${shg?.name || "your SHG"}. How can I assist you today?`,
+    }]);
   };
 
   return (
-    <DashboardLayout noPadding>
-      <div className="flex flex-col h-[calc(100vh-theme(spacing.12))] p-6">
+    <DashboardLayout>
+      <div className="flex flex-col h-[calc(100vh-6rem)] max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center shadow">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Sakhi AI Assistant</h1>
-              <p className="text-xs text-muted-foreground">Your SHG companion, always here to help</p>
+              <h1 className="text-lg font-bold bg-gradient-to-r from-[#C2185B] to-[#6A1B9A] bg-clip-text text-transparent">
+                Sakhi AI Assistant
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Powered by Groq · {shg?.name || "SHG Assistant"}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="border-[#C2185B]/20 hover:bg-[#C2185B]/5 gap-2 text-sm">
-                  <span>{language.flag}</span>
-                  <span>{language.label}</span>
-                  <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
+                  {language.flag} {language.label} <ChevronDown className="w-3 h-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -161,35 +195,26 @@ export default function Chatbot() {
                   <DropdownMenuItem
                     key={lang.code}
                     onClick={() => setLanguage(lang)}
-                    className={language.code === lang.code ? "bg-[#C2185B]/5 text-[#C2185B] font-medium" : ""}
+                    className={language.code === lang.code ? "bg-[#C2185B]/10 text-[#C2185B]" : ""}
                   >
-                    <span className="mr-2">{lang.flag}</span>
-                    {lang.label}
+                    {lang.flag} {lang.label}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearChat}
-              className="text-muted-foreground hover:text-red-500 hover:bg-red-50 gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Clear
+            <Button variant="ghost" size="sm" onClick={clearChat} className="h-8 gap-1.5 text-xs">
+              <Trash2 className="w-3.5 h-3.5" /> Clear
             </Button>
           </div>
         </div>
 
-        {/* Chat Window */}
-        <div className="flex-1 overflow-y-auto rounded-2xl border border-[#C2185B]/10 bg-white shadow-soft p-4 space-y-4 mb-4">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1 pb-2">
           {messages.map((msg, i) => (
             <div
               key={i}
               className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
             >
-              {/* Avatar */}
               <div
                 className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm ${
                   msg.role === "user"
@@ -203,8 +228,6 @@ export default function Chatbot() {
                   <Bot className="w-4 h-4 text-white" />
                 )}
               </div>
-
-              {/* Bubble */}
               <div
                 className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   msg.role === "user"
@@ -217,9 +240,8 @@ export default function Chatbot() {
             </div>
           ))}
 
-          {/* Loading indicator */}
           {isLoading && (
-            <div className="flex gap-3 flex-row">
+            <div className="flex gap-3">
               <div className="w-8 h-8 rounded-full flex-shrink-0 bg-gradient-to-br from-[#6A1B9A] to-[#4A148C] flex items-center justify-center shadow-sm">
                 <Bot className="w-4 h-4 text-white" />
               </div>
@@ -236,7 +258,7 @@ export default function Chatbot() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Suggested Questions — shown only at conversation start */}
+        {/* Suggested questions — only at start */}
         {messages.length === 1 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {SUGGESTED_QUESTIONS.map((q) => (
@@ -258,14 +280,14 @@ export default function Chatbot() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-            placeholder="Ask Sakhi anything about your SHG..."
+            placeholder={`Ask Sakhi anything… (${language.label})`}
             className="flex-1 rounded-xl border-[#C2185B]/20 focus-visible:ring-[#C2185B]/30 bg-white"
             disabled={isLoading}
           />
           <Button
             onClick={() => sendMessage()}
             disabled={!input.trim() || isLoading}
-            className="btn-gradient text-white border-0 rounded-xl px-4"
+            className="bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] text-white border-0 rounded-xl px-4"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

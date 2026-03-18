@@ -1,2 +1,0 @@
-Savings: created_at, shg_id, member_id, month, year, amount, id, date, payment_mode
-Loans: updated_at, shg_id, member_id, loan_amount, interest_rate, tenure_months, created_at, id, disbursed_date, purpose, status
