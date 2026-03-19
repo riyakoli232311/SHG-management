@@ -3,7 +3,7 @@ import { getDb } from '../lib/db.js';
 
 const router = express.Router();
 
-// Get all meetings
+// GET all meetings
 router.get('/', async (req, res) => {
   try {
     const sql = getDb();
@@ -15,128 +15,113 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get a single meeting
+// GET a single meeting
 router.get('/:id', async (req, res) => {
   try {
     const sql = getDb();
-    const { id } = req.params;
-    const meeting = await sql`SELECT * FROM meetings WHERE id = ${id}`;
-    if (meeting.length === 0) {
-      return res.status(404).json({ success: false, error: 'Meeting not found' });
-    }
-    res.json({ success: true, meeting: meeting[0] });
+    const [meeting] = await sql`SELECT * FROM meetings WHERE id = ${req.params.id}`;
+    if (!meeting) return res.status(404).json({ success: false, error: 'Meeting not found' });
+    res.json({ success: true, meeting });
   } catch (error) {
     console.error('Error fetching meeting:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch meeting' });
   }
 });
 
-// Create a meeting
+// POST create a meeting
 router.post('/', async (req, res) => {
   try {
     const sql = getDb();
     const {
-      date,
-      agenda,
-      venue,
-      status,
-      notes,
-      meeting_type,
-      organizer_id,
-      duration,
-      next_meeting_date,
-      total_members,
-      total_present,
-      category
+      date, agenda, venue, status,
+      notes, meeting_type, organizer_id,
+      duration, next_meeting_date,
+      total_members, total_present, category,
     } = req.body;
 
-    const newMeeting = await sql`
+    if (!date || !agenda) {
+      return res.status(400).json({ success: false, error: 'date and agenda are required' });
+    }
+
+    const [meeting] = await sql`
       INSERT INTO meetings (
-        date, agenda, venue, status, notes, "meeting type", "organizer id", 
-        duration, "next meeting date", "total members", "total present", category, created_updated
+        date, agenda, venue, status, notes,
+        meeting_type, organizer_id, duration,
+        next_meeting_date, total_members, total_present,
+        meeting_category, updated_at
       ) VALUES (
-        ${date}, ${agenda}, ${venue}, ${status}, ${notes}, ${meeting_type}, ${organizer_id}, 
-        ${duration}, ${next_meeting_date}, ${total_members}, ${total_present}, ${category}, NOW()
+        ${date},
+        ${agenda},
+        ${venue || null},
+        ${status || 'scheduled'},
+        ${notes || null},
+        ${meeting_type || 'regular'},
+        ${organizer_id || null},
+        ${duration || null},
+        ${next_meeting_date || null},
+        ${total_members || 0},
+        ${total_present || 0},
+        ${category || 'internal'},
+        NOW()
       )
       RETURNING *
     `;
 
-    res.status(201).json({ success: true, meeting: newMeeting[0] });
+    res.status(201).json({ success: true, meeting });
   } catch (error) {
     console.error('Error creating meeting:', error);
     res.status(500).json({ success: false, error: 'Failed to create meeting' });
   }
 });
 
-// Update a meeting
+// PUT update a meeting
 router.put('/:id', async (req, res) => {
   try {
     const sql = getDb();
-    const { id } = req.params;
     const {
-      date,
-      agenda,
-      venue,
-      status,
-      notes,
-      meeting_type,
-      organizer_id,
-      duration,
-      next_meeting_date,
-      total_members,
-      total_present,
-      category
+      date, agenda, venue, status,
+      notes, meeting_type, organizer_id,
+      duration, next_meeting_date,
+      total_members, total_present, category,
     } = req.body;
 
-    const updatedMeeting = await sql`
-      UPDATE meetings
-      SET 
-        date = ${date},
-        agenda = ${agenda},
-        venue = ${venue},
-        status = ${status},
-        notes = ${notes},
-        "meeting type" = ${meeting_type},
-        "organizer id" = ${organizer_id},
-        duration = ${duration},
-        "next meeting date" = ${next_meeting_date},
-        "total members" = ${total_members},
-        "total present" = ${total_present},
-        category = ${category},
-        created_updated = NOW()
-      WHERE id = ${id}
+    const [meeting] = await sql`
+      UPDATE meetings SET
+        date              = ${date},
+        agenda            = ${agenda},
+        venue             = ${venue || null},
+        status            = ${status || 'scheduled'},
+        notes             = ${notes || null},
+        meeting_type      = ${meeting_type || 'regular'},
+        organizer_id      = ${organizer_id || null},
+        duration          = ${duration || null},
+        next_meeting_date = ${next_meeting_date || null},
+        total_members     = ${total_members || 0},
+        total_present     = ${total_present || 0},
+        meeting_category  = ${category || 'internal'},
+        updated_at        = NOW()
+      WHERE id = ${req.params.id}
       RETURNING *
     `;
 
-    if (updatedMeeting.length === 0) {
-      return res.status(404).json({ success: false, error: 'Meeting not found' });
-    }
-
-    res.json({ success: true, meeting: updatedMeeting[0] });
+    if (!meeting) return res.status(404).json({ success: false, error: 'Meeting not found' });
+    res.json({ success: true, meeting });
   } catch (error) {
     console.error('Error updating meeting:', error);
     res.status(500).json({ success: false, error: 'Failed to update meeting' });
   }
 });
 
-// Delete a meeting
+// DELETE a meeting
 router.delete('/:id', async (req, res) => {
   try {
     const sql = getDb();
-    const { id } = req.params;
-    
-    // Check if meeting exists
-    const meeting = await sql`SELECT * FROM meetings WHERE id = ${id}`;
-    if (meeting.length === 0) {
-      return res.status(404).json({ success: false, error: 'Meeting not found' });
-    }
+    const [meeting] = await sql`SELECT id FROM meetings WHERE id = ${req.params.id}`;
+    if (!meeting) return res.status(404).json({ success: false, error: 'Meeting not found' });
 
-    // Delete meeting attendance records first
-    await sql`DELETE FROM meeting_attendance WHERE "meeting id" = ${id}`;
-    
-    // Delete meeting
-    await sql`DELETE FROM meetings WHERE id = ${id}`;
-    
+    await sql`DELETE FROM meeting_attendance WHERE meeting_id = ${req.params.id}`;
+    await sql`DELETE FROM meetings WHERE id = ${req.params.id}`;
+
     res.json({ success: true, message: 'Meeting deleted successfully' });
   } catch (error) {
     console.error('Error deleting meeting:', error);

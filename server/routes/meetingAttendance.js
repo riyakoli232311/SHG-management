@@ -3,17 +3,15 @@ import { getDb } from '../lib/db.js';
 
 const router = express.Router();
 
-// Get attendance for a specific meeting
+// GET attendance for a specific meeting
 router.get('/meeting/:meetingId', async (req, res) => {
   try {
     const sql = getDb();
-    const { meetingId } = req.params;
-    
     const attendance = await sql`
-      SELECT * FROM meeting_attendance 
-      WHERE "meeting id" = ${meetingId}
+      SELECT * FROM meeting_attendance
+      WHERE meeting_id = ${req.params.meetingId}
+      ORDER BY id ASC
     `;
-    
     res.json({ success: true, attendance });
   } catch (error) {
     console.error('Error fetching attendance:', error);
@@ -21,104 +19,82 @@ router.get('/meeting/:meetingId', async (req, res) => {
   }
 });
 
-// Get a single attendance record
+// GET a single attendance record
 router.get('/:id', async (req, res) => {
   try {
     const sql = getDb();
-    const { id } = req.params;
-    
-    const attendance = await sql`
-      SELECT * FROM meeting_attendance WHERE id = ${id}
+    const [attendance] = await sql`
+      SELECT * FROM meeting_attendance WHERE id = ${req.params.id}
     `;
-    
-    if (attendance.length === 0) {
-      return res.status(404).json({ success: false, error: 'Attendance record not found' });
-    }
-    
-    res.json({ success: true, attendance: attendance[0] });
+    if (!attendance) return res.status(404).json({ success: false, error: 'Attendance record not found' });
+    res.json({ success: true, attendance });
   } catch (error) {
     console.error('Error fetching attendance record:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch attendance record' });
   }
 });
 
-// Create attendance record
+// POST create attendance record
 router.post('/', async (req, res) => {
   try {
     const sql = getDb();
-    const {
-      meeting_id,
-      check_in_time,
-      checkout_time,
-      minutes_of_the_meeting
-    } = req.body;
+    const { meeting_id, check_in_time, checkout_time, minutes_of_the_meeting } = req.body;
 
-    const newAttendance = await sql`
+    if (!meeting_id) {
+      return res.status(400).json({ success: false, error: 'meeting_id is required' });
+    }
+
+    const [attendance] = await sql`
       INSERT INTO meeting_attendance (
-        "meeting id", "check in time", "checkout time", "minutes of the meeting"
+        meeting_id, check_in_time, check_out_time, minutes_of_meeting
       ) VALUES (
-        ${meeting_id}, ${check_in_time}, ${checkout_time}, ${minutes_of_the_meeting}
+        ${meeting_id},
+        ${check_in_time || null},
+        ${checkout_time || null},
+        ${minutes_of_the_meeting || null}
       )
       RETURNING *
     `;
 
-    res.status(201).json({ success: true, attendance: newAttendance[0] });
+    res.status(201).json({ success: true, attendance });
   } catch (error) {
     console.error('Error creating attendance record:', error);
     res.status(500).json({ success: false, error: 'Failed to create attendance record' });
   }
 });
 
-// Update attendance record
+// PUT update attendance record
 router.put('/:id', async (req, res) => {
   try {
     const sql = getDb();
-    const { id } = req.params;
-    const {
-      meeting_id,
-      check_in_time,
-      checkout_time,
-      minutes_of_the_meeting
-    } = req.body;
+    const { meeting_id, check_in_time, checkout_time, minutes_of_the_meeting } = req.body;
 
-    const updatedAttendance = await sql`
-      UPDATE meeting_attendance
-      SET 
-        "meeting id" = ${meeting_id},
-        "check in time" = ${check_in_time},
-        "checkout time" = ${checkout_time},
-        "minutes of the meeting" = ${minutes_of_the_meeting}
-      WHERE id = ${id}
+    const [attendance] = await sql`
+      UPDATE meeting_attendance SET
+        meeting_id         = ${meeting_id},
+        check_in_time      = ${check_in_time || null},
+        check_out_time     = ${checkout_time || null},
+        minutes_of_meeting = ${minutes_of_the_meeting || null}
+      WHERE id = ${req.params.id}
       RETURNING *
     `;
 
-    if (updatedAttendance.length === 0) {
-      return res.status(404).json({ success: false, error: 'Attendance record not found' });
-    }
-
-    res.json({ success: true, attendance: updatedAttendance[0] });
+    if (!attendance) return res.status(404).json({ success: false, error: 'Attendance record not found' });
+    res.json({ success: true, attendance });
   } catch (error) {
     console.error('Error updating attendance record:', error);
     res.status(500).json({ success: false, error: 'Failed to update attendance record' });
   }
 });
 
-// Delete attendance record
+// DELETE attendance record
 router.delete('/:id', async (req, res) => {
   try {
     const sql = getDb();
-    const { id } = req.params;
-    
-    const deletedAttendance = await sql`
-      DELETE FROM meeting_attendance 
-      WHERE id = ${id}
-      RETURNING *
+    const [deleted] = await sql`
+      DELETE FROM meeting_attendance WHERE id = ${req.params.id} RETURNING id
     `;
-    
-    if (deletedAttendance.length === 0) {
-      return res.status(404).json({ success: false, error: 'Attendance record not found' });
-    }
-    
+    if (!deleted) return res.status(404).json({ success: false, error: 'Attendance record not found' });
     res.json({ success: true, message: 'Attendance record deleted successfully' });
   } catch (error) {
     console.error('Error deleting attendance record:', error);
