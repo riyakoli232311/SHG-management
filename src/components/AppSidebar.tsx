@@ -1,209 +1,237 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  Users,
-  PiggyBank,
-  Landmark,
-  BarChart3,
-  MessageCircle,
-  ChevronLeft,
-  ChevronRight,
-  CalendarCheck,
-  ChevronUp,
-  LogOut,
-  Settings,
-  Sparkles,
-  Heart,
+  LayoutDashboard, Users, PiggyBank, Landmark, BarChart3,
+  MessageCircle, ChevronLeft, ChevronRight, CalendarCheck,
+  LogOut, Settings, Sparkles, Heart, ChevronUp,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 const LEADER_NAV_ITEMS = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Users, label: "Members", path: "/members" },
-  { icon: CalendarCheck, label: "Meetings", path: "/meetings" },
-  { icon: PiggyBank, label: "Finance", path: "/savings" },
-  { icon: Landmark, label: "Loans", path: "/loans" },
-  { icon: Landmark, label: "Verify Loans", path: "/leader/loans/verify" },
-  { icon: CalendarCheck, label: "Repayments", path: "/repayments" },
-  { icon: BarChart3, label: "Reports", path: "/reports" },
-  { icon: MessageCircle, label: "AI Assistant", path: "/chatbot" },
+  { icon: LayoutDashboard, label: "Dashboard",    path: "/dashboard",           section: "main" },
+  { icon: Users,           label: "Members",      path: "/members",             section: "main" },
+  { icon: CalendarCheck,   label: "Meetings",     path: "/meetings",            section: "main" },
+  { icon: PiggyBank,       label: "Finance",      path: "/savings",             section: "main" },
+  { icon: Landmark,        label: "Loans",        path: "/loans",               section: "main" },
+  { icon: Landmark,        label: "Verify Loans", path: "/leader/loans/verify", section: "more" },
+  { icon: CalendarCheck,   label: "Repayments",   path: "/repayments",          section: "more" },
+  { icon: BarChart3,       label: "Reports",      path: "/reports",             section: "more" },
+  { icon: MessageCircle,   label: "AI Assistant", path: "/chatbot",             section: "more" },
 ];
 
 const MEMBER_NAV_ITEMS = [
-  { icon: Landmark, label: "My Loans", path: "/member/loans" },
+  { icon: Landmark, label: "My Loans", path: "/member/loans", section: "main" },
 ];
 
 export function AppSidebar() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
-  const navItems = user?.role === 'member' ? MEMBER_NAV_ITEMS : LEADER_NAV_ITEMS;
+  const navItems = user?.role === "member" ? MEMBER_NAV_ITEMS : LEADER_NAV_ITEMS;
+  const mainItems = navItems.filter((i) => i.section === "main");
+  const moreItems = navItems.filter((i) => i.section === "more");
+
+  const NavLink = ({ item }: { item: (typeof navItems)[0] }) => {
+    const isActive = location.pathname === item.path;
+    return (
+      <Link
+        to={item.path}
+        title={collapsed ? item.label : undefined}
+        className={cn(
+          "relative flex items-center gap-3 rounded-xl transition-all duration-150 group",
+          collapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2.5",
+          isActive
+            ? "bg-rose-50 text-rose-600"
+            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+        )}
+      >
+        {/* Active indicator bar */}
+        {isActive && !collapsed && (
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-gradient-to-b from-rose-400 to-pink-300 rounded-r-full" />
+        )}
+
+        <item.icon
+          className={cn(
+            "flex-shrink-0 transition-colors",
+            collapsed ? "w-[19px] h-[19px]" : "w-[18px] h-[18px]",
+            isActive
+              ? "text-rose-500"
+              : "text-slate-400 group-hover:text-slate-600"
+          )}
+        />
+
+        {!collapsed && (
+          <span
+            className={cn(
+              "text-[13.5px] font-medium truncate",
+              isActive ? "text-rose-600" : ""
+            )}
+          >
+            {item.label}
+          </span>
+        )}
+
+        {/* Active dot for collapsed */}
+        {isActive && collapsed && (
+          <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-rose-400" />
+        )}
+      </Link>
+    );
+  };
 
   return (
     <aside
       className={cn(
-        "flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 min-h-screen border-r border-sidebar-border",
-        collapsed ? "w-20" : "w-72"
+        "flex flex-col bg-white border-r border-slate-100/80 transition-all duration-300 min-h-screen flex-shrink-0",
+        collapsed ? "w-[68px]" : "w-[232px]"
       )}
+      style={{ boxShadow: "2px 0 12px rgba(0,0,0,0.03)" }}
     >
-      {/* Logo */}
-      <div className="flex items-center gap-3 p-5 border-b border-sidebar-border">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center shadow-lg flex-shrink-0">
-          <Sparkles className="w-6 h-6 text-white" />
+      {/* ── Logo ──────────────────────────────────────────── */}
+      <div
+        className={cn(
+          "flex items-center border-b border-slate-100/80 flex-shrink-0",
+          collapsed ? "justify-center px-3 py-5" : "gap-3 px-5 py-[18px]"
+        )}
+      >
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+          style={{ background: "linear-gradient(135deg, #CC6279 0%, #9E81C3 100%)" }}
+        >
+          <Sparkles className="text-white" style={{ width: 17, height: 17 }} />
         </div>
+
         {!collapsed && (
-          <div className="animate-fade-in overflow-hidden">
-            <h1 className="font-bold text-lg text-white">SakhiSahyog</h1>
-            <p className="text-xs text-sidebar-foreground/70 flex items-center gap-1">
-              <Heart className="w-3 h-3 fill-[#FBC02D] text-[#FBC02D]" />
+          <div className="min-w-0 animate-fade-in">
+            <h1 className="text-[15px] leading-tight text-slate-800" style={{ fontFamily: "'DM Serif Display', serif", fontWeight: 400 }}>
+              SakhiSahyog
+            </h1>
+            <p className="text-[10px] text-rose-400 flex items-center gap-1 mt-0.5 leading-none">
+              <Heart className="w-2.5 h-2.5 fill-current flex-shrink-0" />
               Empowering Women
             </p>
           </div>
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        <p className={cn("text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3", collapsed && "hidden")}>
-          Main Menu
-        </p>
-        {navItems.slice(0, 5).map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.label + item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group",
-                "hover:bg-sidebar-accent",
-                isActive && "bg-gradient-to-r from-[#C2185B]/30 to-transparent border-l-2 border-[#FBC02D]"
-              )}
-            >
-              <item.icon className={cn(
-                "w-5 h-5 flex-shrink-0 transition-colors",
-                isActive ? "text-[#FBC02D]" : "text-sidebar-foreground/70 group-hover:text-white"
-              )} />
-              {!collapsed && (
-                <span className={cn(
-                  "animate-fade-in text-sm font-medium",
-                  isActive ? "text-white" : "text-sidebar-foreground/80 group-hover:text-white"
-                )}>
-                  {item.label}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+      {/* ── Navigation ────────────────────────────────────── */}
+      <nav className="flex-1 overflow-y-auto py-4 px-2.5 space-y-0.5">
+        {!collapsed && (
+          <p className="section-label px-3 mb-2.5">Menu</p>
+        )}
 
-        <p className={cn("text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider mt-6 mb-3 px-3", collapsed && "hidden")}>
-          Others
-        </p>
-        {navItems.slice(5).map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.label + item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group",
-                "hover:bg-sidebar-accent",
-                isActive && "bg-gradient-to-r from-[#C2185B]/30 to-transparent border-l-2 border-[#FBC02D]"
+        {mainItems.map((item) => (
+          <NavLink key={item.path} item={item} />
+        ))}
+
+        {moreItems.length > 0 && (
+          <>
+            <div className={cn("pt-3 pb-1", collapsed ? "px-2" : "px-3")}>
+              {!collapsed ? (
+                <p className="section-label">More</p>
+              ) : (
+                <div className="w-full h-px bg-slate-100" />
               )}
-            >
-              <item.icon className={cn(
-                "w-5 h-5 flex-shrink-0 transition-colors",
-                isActive ? "text-[#FBC02D]" : "text-sidebar-foreground/70 group-hover:text-white"
-              )} />
-              {!collapsed && (
-                <span className={cn(
-                  "animate-fade-in text-sm font-medium",
-                  isActive ? "text-white" : "text-sidebar-foreground/80 group-hover:text-white"
-                )}>
-                  {item.label}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+            </div>
+            {moreItems.map((item) => (
+              <NavLink key={item.path} item={item} />
+            ))}
+          </>
+        )}
       </nav>
 
-      {/* Collapse button */}
-      <div className="p-4 border-t border-sidebar-border">
-        <Button
-          variant="ghost"
-          size="sm"
+      {/* ── Collapse toggle ───────────────────────────────── */}
+      <div className="px-3 pb-2 pt-1 border-t border-slate-100/80">
+        <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full justify-center text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
+          className={cn(
+            "flex items-center w-full py-2 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors text-[13px] font-medium",
+            collapsed ? "justify-center" : "gap-2 px-3"
+          )}
+          title={collapsed ? "Expand sidebar" : undefined}
         >
-          {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-        </Button>
+          {collapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <>
+              <ChevronLeft className="w-4 h-4" />
+              <span>Collapse</span>
+            </>
+          )}
+        </button>
       </div>
 
-      {/* Profile + Logout */}
-      <div className="p-4 border-t border-sidebar-border space-y-1">
-        {/* Profile dropdown */}
+      {/* ── User profile ──────────────────────────────────── */}
+      <div
+        className={cn(
+          "border-t border-slate-100/80 flex-shrink-0",
+          collapsed ? "p-2" : "p-3"
+        )}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               className={cn(
-                "flex items-center gap-3 w-full hover:bg-sidebar-accent rounded-xl p-2 transition-colors",
+                "flex items-center w-full hover:bg-slate-50 rounded-xl p-2 transition-colors gap-2.5",
                 collapsed && "justify-center"
               )}
             >
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #e8899c 0%, #b399d4 100%)" }}
+              >
                 {user?.name?.charAt(0)?.toUpperCase()}
               </div>
               {!collapsed && (
                 <>
-                  <div className="text-left flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
-                    <p className="text-xs text-white/50 truncate">{user?.role === 'member' ? "Member" : "SHG Leader"}</p>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-[13px] font-medium text-slate-700 truncate leading-tight">
+                      {user?.name}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 leading-none">
+                      {user?.role === "member" ? "Member" : "SHG Leader"}
+                    </p>
                   </div>
-                  <ChevronUp className="w-4 h-4 text-white/40 flex-shrink-0" />
+                  <ChevronUp className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" />
                 </>
               )}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start" className="w-52 mb-1">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-xs">My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link to="/profile">Profile Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/settings">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
+                <Settings className="w-4 h-4 mr-2" /> Settings
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-      {/* Logout */}
-<button
-  onClick={async () => { await logout(); navigate("/"); }}
-  className={cn(
-    "flex items-center gap-3 px-3 py-3 w-full rounded-xl transition-all duration-200",
-    "hover:bg-red-500/20 text-sidebar-foreground/70 hover:text-red-300",
-    collapsed && "justify-center"
-  )}
->
-  <LogOut className="w-5 h-5 flex-shrink-0" />
-  {!collapsed && <span className="text-sm font-medium">Logout</span>}
-</button>
+        <button
+          onClick={async () => {
+            await logout();
+            navigate("/");
+          }}
+          className={cn(
+            "flex items-center w-full mt-1 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-400 transition-colors text-[13px] font-medium",
+            collapsed ? "justify-center p-2" : "gap-2.5 px-3 py-2"
+          )}
+          title={collapsed ? "Sign out" : undefined}
+        >
+          <LogOut className="w-[15px] h-[15px] flex-shrink-0" />
+          {!collapsed && <span>Sign Out</span>}
+        </button>
       </div>
     </aside>
   );

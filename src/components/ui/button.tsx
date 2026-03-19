@@ -5,37 +5,56 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-[13.5px] font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+        default:
+          "text-white shadow-sm hover:opacity-90 hover:-translate-y-px active:translate-y-0",
+
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
+          "bg-red-500 text-white hover:bg-red-600 shadow-sm",
+
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-white hover:bg-rose-50/60 hover:border-rose-200 hover:text-rose-600 text-foreground",
+
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        hero: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl text-base px-8 py-6 rounded-xl font-semibold",
-        "hero-outline": "border-2 border-primary-foreground/20 text-primary-foreground bg-primary-foreground/10 hover:bg-primary-foreground/20 backdrop-blur-sm text-base px-8 py-6 rounded-xl font-semibold",
-        success: "bg-success text-success-foreground hover:bg-success/90 shadow-sm",
-        accent: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm",
+          "bg-violet-100 text-violet-700 hover:bg-violet-200 shadow-none",
+
+        ghost:
+          "hover:bg-rose-50 hover:text-rose-600 text-slate-600",
+
+        link:
+          "text-rose-500 underline-offset-4 hover:underline p-0 h-auto",
+
+        hero:
+          "text-white shadow-lg hover:opacity-90 hover:-translate-y-0.5 text-base px-8 py-5 rounded-2xl font-semibold",
+
+        "hero-outline":
+          "border-2 border-white/30 text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm text-base px-8 py-5 rounded-2xl font-semibold",
+
+        success:
+          "bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm",
+
+        accent:
+          "text-white shadow-sm hover:opacity-90",
+
+        soft:
+          "bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-lg px-8",
-        xl: "h-14 rounded-xl px-10 text-base",
-        icon: "h-10 w-10",
+        sm:      "h-9 rounded-lg px-3 text-[13px]",
+        lg:      "h-11 rounded-xl px-7",
+        xl:      "h-13 rounded-2xl px-10 text-base",
+        icon:    "h-10 w-10",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
     },
-  },
+  }
 );
 
 export interface ButtonProps
@@ -45,10 +64,26 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, style, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
-  },
+
+    // Apply gradient background for brand variants
+    const gradientStyle =
+      variant === "default" || variant === "hero"
+        ? { background: "linear-gradient(135deg, #CC6279 0%, #b05870 100%)", ...style }
+        : variant === "accent"
+        ? { background: "linear-gradient(135deg, #EF9767 0%, #e0795a 100%)", ...style }
+        : style;
+
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        style={gradientStyle}
+        {...props}
+      />
+    );
+  }
 );
 Button.displayName = "Button";
 

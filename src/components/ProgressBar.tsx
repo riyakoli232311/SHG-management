@@ -4,21 +4,30 @@ interface ProgressBarProps {
   value: number;
   max?: number;
   variant?: "default" | "success" | "warning" | "destructive";
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   showLabel?: boolean;
+  animated?: boolean;
 }
 
-const variantStyles = {
-  default: "bg-gradient-to-r from-[#C2185B] to-[#6A1B9A]",
-  success: "bg-gradient-to-r from-emerald-500 to-emerald-600",
-  warning: "bg-gradient-to-r from-[#FBC02D] to-[#F57F17]",
-  destructive: "bg-gradient-to-r from-red-500 to-red-600",
+const trackStyles = {
+  default:     "bg-rose-100",
+  success:     "bg-emerald-100",
+  warning:     "bg-amber-100",
+  destructive: "bg-red-100",
+};
+
+const fillStyles = {
+  default:     "bg-gradient-to-r from-rose-400 to-pink-300",
+  success:     "bg-gradient-to-r from-emerald-400 to-teal-300",
+  warning:     "bg-gradient-to-r from-amber-400 to-orange-300",
+  destructive: "bg-gradient-to-r from-red-400 to-rose-400",
 };
 
 const sizeStyles = {
+  xs: "h-1",
   sm: "h-1.5",
-  md: "h-2.5",
-  lg: "h-4",
+  md: "h-2",
+  lg: "h-3",
 };
 
 export function ProgressBar({
@@ -27,22 +36,32 @@ export function ProgressBar({
   variant = "default",
   size = "md",
   showLabel = false,
+  animated = true,
 }: ProgressBarProps) {
-  const percentage = Math.min((value / max) * 100, 100);
+  const pct = Math.min(Math.max((value / max) * 100, 0), 100);
 
   return (
     <div className="w-full">
-      <div className={cn("w-full bg-[#C2185B]/10 rounded-full overflow-hidden", sizeStyles[size])}>
+      <div
+        className={cn(
+          "w-full rounded-full overflow-hidden",
+          sizeStyles[size],
+          trackStyles[variant]
+        )}
+      >
         <div
           className={cn(
-            "h-full rounded-full transition-all duration-500",
-            variantStyles[variant]
+            "h-full rounded-full",
+            fillStyles[variant],
+            animated && "transition-all duration-700 ease-out"
           )}
-          style={{ width: `${percentage}%` }}
+          style={{ width: `${pct}%` }}
         />
       </div>
       {showLabel && (
-        <p className="text-sm text-muted-foreground mt-1 text-right">{Math.round(percentage)}%</p>
+        <p className="text-[12px] text-muted-foreground mt-1 text-right font-medium">
+          {Math.round(pct)}%
+        </p>
       )}
     </div>
   );
