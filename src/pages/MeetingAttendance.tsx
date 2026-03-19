@@ -1,75 +1,63 @@
 import { useEffect, useState } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useSearchParams, Link } from "react-router-dom";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Users, Plus, Pencil, Trash2, Clock, AlignLeft, ArrowLeft } from "lucide-react";
+  ArrowLeft, Users, CheckCircle2, XCircle,
+  IndianRupee, ClipboardList, Save, AlertCircle,
+} from "lucide-react";
 import { meetingAttendanceApi, meetingsApi } from "@/lib/api";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-const EMPTY_FORM = {
-  check_in_time: "",
-  checkout_time: "",
-  minutes_of_the_meeting: "",
-};
-type FormState = typeof EMPTY_FORM;
-
-// Helper to display a time string from the DB
-function formatTime(t: unknown): string {
-  if (!t) return "Not set";
-  try {
-    return new Date("1970-01-01T" + String(t)).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return String(t);
-  }
+// ── Types ─────────────────────────────────────────────────────
+interface AttendanceRow {
+  member_id:      number;
+  member_name:    string;
+  member_role:    string;
+  id:             number | null;
+  attended:       boolean;
+  late_minutes:   number;
+  fine_amount:    number;
+  fine_paid:      boolean;
+  tasks_assigned: string;
+  notes:          string;
 }
 
+interface Meeting {
+  id: number;
+  agenda: string;
+  date: string;
+  status: string;
+  venue: string | null;
+  total_members: number;
+  total_present: number;
+  total_absent:  number;
+}
+
+const ROLE_ORDER: Record<string, number> = {
+  president: 1, secretary: 2, treasurer: 3, member: 4,
+};
+
+// ── Main Page ─────────────────────────────────────────────────
 export default function MeetingAttendance() {
   const [searchParams] = useSearchParams();
   const meetingId = searchParams.get("meetingId");
 
-  const [meeting, setMeeting]       = useState<any | null>(null);
-  const [attendances, setAttendances] = useState<any[]>([]);
+  const [meeting, setMeeting]       = useState<Meeting | null>(null);
+  const [rows, setRows]             = useState<AttendanceRow[]>([]);
   const [loading, setLoading]       = useState(true);
-
-  const [showAdd, setShowAdd]   = useState(false);
-  const [addForm, setAddForm]   = useState<FormState>({ ...EMPTY_FORM });
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [editObj, setEditObj]   = useState<any | null>(null);
-  const [editForm, setEditForm] = useState<FormState>({ ...EMPTY_FORM });
-
-  const [deleteObj, setDeleteObj] = useState<any | null>(null);
-  const [deleting, setDeleting]   = useState(false);
+  const [saving, setSaving]         = useState(false);
+  const [markingFine, setMarkingFine] = useState<number | null>(null);
 
   useEffect(() => {
-    if (meetingId) loadData();
+    if (meetingId) load();
     else setLoading(false);
   }, [meetingId]);
 
-  async function loadData() {
+  async function load() {
     if (!meetingId) return;
     try {
       setLoading(true);
@@ -78,92 +66,94 @@ export default function MeetingAttendance() {
         meetingAttendanceApi.getForMeeting(meetingId),
       ]);
       setMeeting(mRes.meeting);
-      setAttendances(aRes.attendance || []);
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to load data");
+      setRows(aRes.attendance || []);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to load attendance");
     } finally {
       setLoading(false);
     }
   }
 
-  // ── Add ────────────────────────────────────────────────────
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
+  // ── Row update helpers ────────────────────────────────────────
+  function toggle(memberId: number) {
+    setRows(prev => prev.map(r => {
+      if (r.member_id !== memberId) return r;
+      const attended = !r.attended;
+      return {
+        ...r,
+        attended,
+        // Auto-set fine to 50 for absent, clear if present
+        fine_amount: !attended ? 50 : 0,
+        fine_paid:   !attended ? false : r.fine_paid,
+      };
+    }));
+  }
+
+  function setField(memberId: number, field: keyof AttendanceRow, value: any) {
+    setRows(prev => prev.map(r =>
+      r.member_id === memberId ? { ...r, [field]: value } : r
+    ));
+  }
+
+  // ── Save all ──────────────────────────────────────────────────
+  async function handleSave() {
     if (!meetingId) return;
-    setIsSaving(true);
+    setSaving(true);
     try {
-      await meetingAttendanceApi.create({
-        meeting_id: meetingId,
-        check_in_time: addForm.check_in_time || null,
-        checkout_time: addForm.checkout_time || null,
-        minutes_of_the_meeting: addForm.minutes_of_the_meeting || null,
-      });
-      toast.success("Attendance record added!");
-      setAddForm({ ...EMPTY_FORM });
-      setShowAdd(false);
-      loadData();
+      await meetingAttendanceApi.bulkSave(meetingId, rows.map(r => ({
+        member_id:      r.member_id,
+        attended:       r.attended,
+        late_minutes:   r.late_minutes,
+        fine_amount:    r.fine_amount,
+        fine_paid:      r.fine_paid,
+        tasks_assigned: r.tasks_assigned || null,
+        notes:          r.notes || null,
+      })));
+      toast.success("Attendance saved!");
+      load(); // Reload to get updated meeting totals
     } catch (err: any) {
-      toast.error(err?.message || "Failed to add attendance");
+      toast.error(err?.message || "Failed to save attendance");
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   }
 
-  // ── Edit ───────────────────────────────────────────────────
-  function openEdit(record: any) {
-    setEditObj(record);
-    setEditForm({
-      // DB returns snake_case column names
-      check_in_time:          record.check_in_time  || "",
-      checkout_time:          record.check_out_time || "",
-      minutes_of_the_meeting: record.minutes_of_meeting || "",
-    });
-  }
-
-  async function handleEdit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!editObj || !meetingId) return;
-    setIsSaving(true);
+  // ── Mark fine paid ────────────────────────────────────────────
+  async function markFinePaid(attendanceId: number, memberId: number) {
+    setMarkingFine(memberId);
     try {
-      await meetingAttendanceApi.update(String(editObj.id), {
-        meeting_id: meetingId,
-        check_in_time: editForm.check_in_time || null,
-        checkout_time: editForm.checkout_time || null,
-        minutes_of_the_meeting: editForm.minutes_of_the_meeting || null,
-      });
-      toast.success("Attendance updated!");
-      setEditObj(null);
-      loadData();
+      await meetingAttendanceApi.markFinePaid(String(attendanceId));
+      setRows(prev => prev.map(r =>
+        r.member_id === memberId ? { ...r, fine_paid: true } : r
+      ));
+      toast.success("Fine marked as paid");
     } catch (err: any) {
-      toast.error(err?.message || "Failed to update attendance");
+      toast.error(err?.message || "Failed to update fine");
     } finally {
-      setIsSaving(false);
+      setMarkingFine(null);
     }
   }
 
-  // ── Delete ─────────────────────────────────────────────────
-  async function handleDelete() {
-    if (!deleteObj) return;
-    setDeleting(true);
-    try {
-      await meetingAttendanceApi.delete(String(deleteObj.id));
-      toast.success("Record deleted");
-      setDeleteObj(null);
-      loadData();
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to delete record");
-    } finally {
-      setDeleting(false);
-    }
-  }
+  // ── Derived stats ─────────────────────────────────────────────
+  const presentCount = rows.filter(r => r.attended).length;
+  const absentCount  = rows.length - presentCount;
+  const totalFines   = rows.reduce((s, r) => s + (r.attended ? 0 : Number(r.fine_amount)), 0);
+  const unpaidFines  = rows.filter(r => !r.attended && r.fine_amount > 0 && !r.fine_paid)
+                          .reduce((s, r) => s + Number(r.fine_amount), 0);
 
-  // ── Missing meetingId guard ────────────────────────────────
+  // Sort rows by role order
+  const sortedRows = [...rows].sort((a, b) =>
+    (ROLE_ORDER[a.member_role] || 4) - (ROLE_ORDER[b.member_role] || 4) ||
+    a.member_name.localeCompare(b.member_name)
+  );
+
+  // ── Missing meetingId ─────────────────────────────────────────
   if (!meetingId) {
     return (
       <DashboardLayout>
-        <PageHeader title="Meeting Attendance" description="Select a meeting to view attendance" />
         <div className="text-center py-16 text-muted-foreground">
-          <p>Meeting ID is missing from the URL.</p>
+          <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p className="font-medium">Meeting ID is missing.</p>
           <Link to="/meetings" className="text-[#C2185B] hover:underline mt-2 inline-block">
             Go back to Meetings
           </Link>
@@ -174,27 +164,38 @@ export default function MeetingAttendance() {
 
   return (
     <DashboardLayout>
+
+      {/* Back */}
       <div className="mb-4">
-        <Link
-          to="/meetings"
-          className="text-sm text-gray-500 hover:text-[#C2185B] flex items-center gap-1 group"
-        >
+        <Link to="/meetings"
+          className="text-sm text-gray-500 hover:text-[#C2185B] flex items-center gap-1 group w-fit">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Back to Meetings
         </Link>
       </div>
 
-      <PageHeader
-        title={`Attendance: ${meeting?.agenda || "Meeting"}`}
-        description="Manage attendance records and minutes for this meeting"
-      />
-
-      <div className="flex justify-end mb-6">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {meeting?.agenda || "Meeting Attendance"}
+          </h1>
+          {meeting && (
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {new Date(meeting.date).toLocaleDateString("en-IN", {
+                weekday: "long", day: "numeric", month: "long", year: "numeric",
+              })}
+              {meeting.venue && ` · ${meeting.venue}`}
+            </p>
+          )}
+        </div>
         <Button
+          onClick={handleSave}
+          disabled={saving || loading}
           className="bg-[#C2185B] hover:bg-[#AD1457] text-white shrink-0"
-          onClick={() => { setAddForm({ ...EMPTY_FORM }); setShowAdd(true); }}
         >
-          <Plus className="w-4 h-4 mr-1" /> Add Record
+          <Save className="w-4 h-4 mr-2" />
+          {saving ? "Saving..." : "Save Attendance"}
         </Button>
       </div>
 
@@ -202,184 +203,212 @@ export default function MeetingAttendance() {
         <div className="flex justify-center py-16">
           <div className="w-8 h-8 rounded-full border-4 border-[#C2185B]/30 border-t-[#C2185B] animate-spin" />
         </div>
-      ) : attendances.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground bg-white rounded-xl border border-dashed border-gray-300">
-          <Users className="w-12 h-12 mx-auto mb-3 opacity-30 text-gray-400" />
-          <p className="font-medium text-gray-600">No attendance records for this meeting yet.</p>
-          <p className="text-sm mt-1">Click "Add Record" to log meeting details.</p>
-        </div>
       ) : (
-        <div className="grid gap-4">
-          {attendances.map((record) => (
-            <Card
-              key={record.id}
-              className="hover:border-[#C2185B]/40 hover:shadow-md transition-all group"
-            >
-              <CardContent className="pt-5 pb-5">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 font-medium">
-                      <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md">
-                        <Clock className="w-4 h-4 opacity-70" />
-                        Check-in: {formatTime(record.check_in_time)}
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-2.5 py-1 rounded-md">
-                        <Clock className="w-4 h-4 opacity-70" />
-                        Check-out: {formatTime(record.check_out_time)}
-                      </div>
-                    </div>
+        <>
 
-                    {record.minutes_of_meeting && (
-                      <div className="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm">
-                        <div className="flex items-center gap-1.5 text-gray-700 font-medium mb-1 border-b border-gray-200 pb-1">
-                          <AlignLeft className="w-4 h-4 text-[#C2185B]" />
-                          Minutes of Meeting
-                        </div>
-                        <p className="text-gray-600 whitespace-pre-wrap">
-                          {record.minutes_of_meeting}
-                        </p>
-                      </div>
-                    )}
+          {/* Stats bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            {[
+              { icon: CheckCircle2, color: "#388E3C", label: "Present",      value: presentCount },
+              { icon: XCircle,      color: "#D32F2F", label: "Absent",       value: absentCount  },
+              { icon: IndianRupee,  color: "#F57C00", label: "Total Fines",  value: `₹${totalFines}` },
+              { icon: AlertCircle,  color: "#6A1B9A", label: "Unpaid Fines", value: `₹${unpaidFines}` },
+            ].map(({ icon: Icon, color, label, value }) => (
+              <Card key={label} className="border-border/60 shadow-sm">
+                <div className="flex items-center gap-3 p-4">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${color}15` }}>
+                    <Icon className="w-4 h-4" style={{ color }} />
                   </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">{label}</p>
+                    <p className="text-xl font-bold text-gray-900">{value}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
 
-                  <div className="flex gap-2 shrink-0 self-end md:self-auto">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEdit(record)}
-                      className="text-[#C2185B] border-[#C2185B]/20 hover:bg-[#C2185B]/5"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDeleteObj(record)}
-                      className="text-red-500 border-red-500/20 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+          {/* Progress bar */}
+          {rows.length > 0 && (
+            <div className="bg-white border border-border/60 rounded-xl px-4 py-3 mb-6 shadow-sm">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-muted-foreground">Attendance progress</span>
+                <span className="font-medium text-[#C2185B]">
+                  {rows.length ? Math.round((presentCount / rows.length) * 100) : 0}%
+                </span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#C2185B] to-[#6A1B9A] rounded-full transition-all duration-500"
+                  style={{ width: `${rows.length ? (presentCount / rows.length) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Attendance Table */}
+          {sortedRows.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground bg-white rounded-xl border border-dashed border-gray-300">
+              <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p className="font-medium">No members found for this SHG.</p>
+            </div>
+          ) : (
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#C2185B]" />
+                  Member Attendance — {rows.length} members
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-gray-50 text-left">
+                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Member</th>
+                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground text-center">Present</th>
+                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Late (min)</th>
+                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Fine (₹)</th>
+                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Fine Status</th>
+                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Task Assigned</th>
+                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedRows.map(row => (
+                        <tr
+                          key={row.member_id}
+                          className={cn(
+                            "border-b transition-colors",
+                            row.attended
+                              ? "hover:bg-green-50/30"
+                              : "bg-red-50/20 hover:bg-red-50/40"
+                          )}
+                        >
+                          {/* Member */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                {row.member_name.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">{row.member_name}</p>
+                                <p className="text-xs text-muted-foreground capitalize">{row.member_role}</p>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Present toggle */}
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => toggle(row.member_id)}
+                              className={cn(
+                                "w-9 h-9 rounded-full flex items-center justify-center transition-all mx-auto",
+                                row.attended
+                                  ? "bg-green-100 text-green-600 hover:bg-green-200"
+                                  : "bg-red-100 text-red-500 hover:bg-red-200"
+                              )}
+                            >
+                              {row.attended
+                                ? <CheckCircle2 className="w-5 h-5" />
+                                : <XCircle className="w-5 h-5" />
+                              }
+                            </button>
+                          </td>
+
+                          {/* Late minutes */}
+                          <td className="px-4 py-3">
+                            <Input
+                              type="number"
+                              min={0}
+                              value={row.late_minutes || ""}
+                              onChange={e => setField(row.member_id, "late_minutes", Number(e.target.value))}
+                              placeholder="0"
+                              disabled={!row.attended}
+                              className="w-20 h-8 text-sm disabled:opacity-40"
+                            />
+                          </td>
+
+                          {/* Fine amount */}
+                          <td className="px-4 py-3">
+                            <Input
+                              type="number"
+                              min={0}
+                              value={row.fine_amount || ""}
+                              onChange={e => setField(row.member_id, "fine_amount", Number(e.target.value))}
+                              placeholder="0"
+                              disabled={row.attended}
+                              className="w-24 h-8 text-sm disabled:opacity-40"
+                            />
+                          </td>
+
+                          {/* Fine paid */}
+                          <td className="px-4 py-3">
+                            {!row.attended && Number(row.fine_amount) > 0 ? (
+                              row.fine_paid ? (
+                                <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                                  <CheckCircle2 className="w-3 h-3" /> Paid
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => row.id && markFinePaid(row.id, row.member_id)}
+                                  disabled={!row.id || markingFine === row.member_id}
+                                  className="text-xs bg-amber-100 text-amber-700 hover:bg-amber-200 px-2 py-0.5 rounded-full font-medium transition-colors disabled:opacity-50"
+                                >
+                                  {markingFine === row.member_id ? "..." : "Mark Paid"}
+                                </button>
+                              )
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </td>
+
+                          {/* Task assigned */}
+                          <td className="px-4 py-3">
+                            <Input
+                              value={row.tasks_assigned}
+                              onChange={e => setField(row.member_id, "tasks_assigned", e.target.value)}
+                              placeholder="e.g. Bring passbook"
+                              className="w-44 h-8 text-sm"
+                            />
+                          </td>
+
+                          {/* Notes */}
+                          <td className="px-4 py-3">
+                            <Input
+                              value={row.notes}
+                              onChange={e => setField(row.member_id, "notes", e.target.value)}
+                              placeholder="Optional note"
+                              className="w-44 h-8 text-sm"
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Footer */}
+                <div className="px-4 py-3 bg-gray-50 border-t flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    {presentCount} present · {absentCount} absent
+                  </span>
+                  <Button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="bg-[#C2185B] hover:bg-[#AD1457] text-white"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {saving ? "Saving..." : "Save Attendance"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          )}
+
+        </>
       )}
-
-      {/* ── Add Dialog ───────────────────────────────────────── */}
-      <Dialog open={showAdd} onOpenChange={setShowAdd}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Plus className="w-5 h-5 text-[#C2185B]" /> Add Record
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAdd} className="mt-2 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label>Check-in Time</Label>
-                <Input
-                  type="time"
-                  value={addForm.check_in_time}
-                  onChange={(e) => setAddForm((f) => ({ ...f, check_in_time: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>Check-out Time</Label>
-                <Input
-                  type="time"
-                  value={addForm.checkout_time}
-                  onChange={(e) => setAddForm((f) => ({ ...f, checkout_time: e.target.value }))}
-                />
-              </div>
-              <div className="col-span-2 space-y-1">
-                <Label>Minutes of the Meeting</Label>
-                <textarea
-                  className="flex min-h-[120px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#C2185B]/50"
-                  value={addForm.minutes_of_the_meeting}
-                  onChange={(e) => setAddForm((f) => ({ ...f, minutes_of_the_meeting: e.target.value }))}
-                  placeholder="Record discussions, decisions made, action items, etc..."
-                />
-              </div>
-            </div>
-            <div className="flex gap-3 justify-end pt-2">
-              <Button type="button" variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
-              <Button type="submit" className="bg-[#C2185B] hover:bg-[#AD1457] text-white" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Record"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Edit Dialog ──────────────────────────────────────── */}
-      <Dialog open={!!editObj} onOpenChange={(o) => !o && setEditObj(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-[#C2185B]" /> Edit Record
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleEdit} className="mt-2 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label>Check-in Time</Label>
-                <Input
-                  type="time"
-                  value={editForm.check_in_time}
-                  onChange={(e) => setEditForm((f) => ({ ...f, check_in_time: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>Check-out Time</Label>
-                <Input
-                  type="time"
-                  value={editForm.checkout_time}
-                  onChange={(e) => setEditForm((f) => ({ ...f, checkout_time: e.target.value }))}
-                />
-              </div>
-              <div className="col-span-2 space-y-1">
-                <Label>Minutes of the Meeting</Label>
-                <textarea
-                  className="flex min-h-[120px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#C2185B]/50"
-                  value={editForm.minutes_of_the_meeting}
-                  onChange={(e) => setEditForm((f) => ({ ...f, minutes_of_the_meeting: e.target.value }))}
-                  placeholder="Record discussions, decisions made, action items, etc..."
-                />
-              </div>
-            </div>
-            <div className="flex gap-3 justify-end pt-2">
-              <Button type="button" variant="outline" onClick={() => setEditObj(null)}>Cancel</Button>
-              <Button type="submit" className="bg-[#C2185B] hover:bg-[#AD1457] text-white" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Delete Confirm ───────────────────────────────────── */}
-      <AlertDialog open={!!deleteObj} onOpenChange={(o) => !o && setDeleteObj(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Record?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this attendance record. This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {deleting ? "Deleting..." : "Yes, Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </DashboardLayout>
   );
 }

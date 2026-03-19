@@ -174,17 +174,21 @@ export const adminApi = {
 
 // ── Meetings ──────────────────────────────────────────────────
 export const meetingsApi = {
-  list: () => request<any>('GET', '/api/meetings'),
-  get: (id: string) => request<any>('GET', `/api/meetings/${id}`),
-  create: (data: any) => request<any>('POST', '/api/meetings', data),
-  update: (id: string, data: any) => request<any>('PUT', `/api/meetings/${id}`, data),
-  delete: (id: string) => request<any>('DELETE', `/api/meetings/${id}`),
+  list:   ()                          => request<any>('GET',    '/api/meetings'),
+  get:    (id: string)                => request<any>('GET',    `/api/meetings/${id}`),
+  create: (data: any)                 => request<any>('POST',   '/api/meetings', data),
+  update: (id: string, data: any)     => request<any>('PUT',    `/api/meetings/${id}`, data),
+  delete: (id: string)                => request<any>('DELETE', `/api/meetings/${id}`),
 };
-
+ 
 // ── Meeting Attendance ────────────────────────────────────────
 export const meetingAttendanceApi = {
-  getForMeeting: (meetingId: string) => request<any>('GET', `/api/meeting-attendance/meeting/${meetingId}`),
-  create: (data: any) => request<any>('POST', '/api/meeting-attendance', data),
-  update: (id: string, data: any) => request<any>('PUT', `/api/meeting-attendance/${id}`, data),
-  delete: (id: string) => request<any>('DELETE', `/api/meeting-attendance/${id}`),
+  getForMeeting: (meetingId: string) =>
+    request<any>('GET', `/api/meeting-attendance/meeting/${meetingId}`),
+ 
+  bulkSave: (meetingId: string, records: any[]) =>
+    request<any>('POST', `/api/meeting-attendance/meeting/${meetingId}/bulk`, { records }),
+ 
+  markFinePaid: (attendanceId: string) =>
+    request<any>('PATCH', `/api/meeting-attendance/${attendanceId}/fine-paid`),
 };
