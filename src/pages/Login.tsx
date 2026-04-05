@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HeartHandshake, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,7 +28,7 @@ export default function Login() {
         navigate('/dashboard');
       } else {
         await memberLogin(name, password);
-        navigate('/member/loans');
+        navigate('/member/overview');  // ← redirects to new overview page
       }
     } catch (err: any) {
       toast.error(err.message || 'Login failed');
@@ -114,13 +114,11 @@ export default function Login() {
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground flex flex-col gap-2">
-            <span>
-              New to SakhiSahyog?{' '}
-              <Link to="/signup" className="text-[#C2185B] font-medium hover:underline">
-                Create account
-              </Link>
-            </span>
+          <p className="text-center text-sm text-muted-foreground">
+            New to SakhiSahyog?{' '}
+            <Link to="/signup" className="text-[#C2185B] font-medium hover:underline">
+              Create account
+            </Link>
           </p>
         </form>
       </div>

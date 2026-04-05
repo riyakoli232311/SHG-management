@@ -25,7 +25,11 @@ const LEADER_NAV_ITEMS = [
 ];
 
 const MEMBER_NAV_ITEMS = [
-  { icon: Landmark, label: "My Loans", path: "/member/loans", section: "main" },
+  { icon: LayoutDashboard, label: "Overview",      path: "/member/overview",   section: "main" },
+  { icon: Landmark,        label: "Loan Requests", path: "/member/loans",      section: "main" },
+  { icon: CalendarCheck,   label: "Repayments",    path: "/member/repayments", section: "main" },
+  { icon: PiggyBank,       label: "Savings",       path: "/member/savings",    section: "main" },
+  { icon: Users,           label: "My SHG",        path: "/member/shg",        section: "main" },
 ];
 
 export function AppSidebar() {
@@ -52,7 +56,6 @@ export function AppSidebar() {
             : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
         )}
       >
-        {/* Active indicator bar */}
         {isActive && !collapsed && (
           <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-gradient-to-b from-rose-400 to-pink-300 rounded-r-full" />
         )}
@@ -68,17 +71,11 @@ export function AppSidebar() {
         />
 
         {!collapsed && (
-          <span
-            className={cn(
-              "text-[13.5px] font-medium truncate",
-              isActive ? "text-rose-600" : ""
-            )}
-          >
+          <span className={cn("text-[13.5px] font-medium truncate", isActive ? "text-rose-600" : "")}>
             {item.label}
           </span>
         )}
 
-        {/* Active dot for collapsed */}
         {isActive && collapsed && (
           <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-rose-400" />
         )}
@@ -94,7 +91,7 @@ export function AppSidebar() {
       )}
       style={{ boxShadow: "2px 0 12px rgba(0,0,0,0.03)" }}
     >
-      {/* ── Logo ──────────────────────────────────────────── */}
+      {/* Logo */}
       <div
         className={cn(
           "flex items-center border-b border-slate-100/80 flex-shrink-0",
@@ -115,17 +112,15 @@ export function AppSidebar() {
             </h1>
             <p className="text-[10px] text-rose-400 flex items-center gap-1 mt-0.5 leading-none">
               <Heart className="w-2.5 h-2.5 fill-current flex-shrink-0" />
-              Empowering Women
+              {user?.role === "member" ? "Member Portal" : "Empowering Women"}
             </p>
           </div>
         )}
       </div>
 
-      {/* ── Navigation ────────────────────────────────────── */}
+      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-2.5 space-y-0.5">
-        {!collapsed && (
-          <p className="section-label px-3 mb-2.5">Menu</p>
-        )}
+        {!collapsed && <p className="section-label px-3 mb-2.5">Menu</p>}
 
         {mainItems.map((item) => (
           <NavLink key={item.path} item={item} />
@@ -147,7 +142,7 @@ export function AppSidebar() {
         )}
       </nav>
 
-      {/* ── Collapse toggle ───────────────────────────────── */}
+      {/* Collapse toggle */}
       <div className="px-3 pb-2 pt-1 border-t border-slate-100/80">
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -155,26 +150,15 @@ export function AppSidebar() {
             "flex items-center w-full py-2 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors text-[13px] font-medium",
             collapsed ? "justify-center" : "gap-2 px-3"
           )}
-          title={collapsed ? "Expand sidebar" : undefined}
         >
-          {collapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <>
-              <ChevronLeft className="w-4 h-4" />
-              <span>Collapse</span>
-            </>
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : (
+            <><ChevronLeft className="w-4 h-4" /><span>Collapse</span></>
           )}
         </button>
       </div>
 
-      {/* ── User profile ──────────────────────────────────── */}
-      <div
-        className={cn(
-          "border-t border-slate-100/80 flex-shrink-0",
-          collapsed ? "p-2" : "p-3"
-        )}
-      >
+      {/* User profile */}
+      <div className={cn("border-t border-slate-100/80 flex-shrink-0", collapsed ? "p-2" : "p-3")}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -192,11 +176,9 @@ export function AppSidebar() {
               {!collapsed && (
                 <>
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-[13px] font-medium text-slate-700 truncate leading-tight">
-                      {user?.name}
-                    </p>
+                    <p className="text-[13px] font-medium text-slate-700 truncate leading-tight">{user?.name}</p>
                     <p className="text-[11px] text-slate-400 mt-0.5 leading-none">
-                      {user?.role === "member" ? "Member" : "SHG Leader"}
+                      {user?.role === "member" ? "SHG Member" : "SHG Leader"}
                     </p>
                   </div>
                   <ChevronUp className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" />
@@ -207,27 +189,27 @@ export function AppSidebar() {
           <DropdownMenuContent side="top" align="start" className="w-52 mb-1">
             <DropdownMenuLabel className="text-xs">My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/profile">Profile Settings</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/settings">
-                <Settings className="w-4 h-4 mr-2" /> Settings
-              </Link>
-            </DropdownMenuItem>
+            {user?.role !== "member" && (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Profile Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">
+                    <Settings className="w-4 h-4 mr-2" /> Settings
+                  </Link>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
         <button
-          onClick={async () => {
-            await logout();
-            navigate("/");
-          }}
+          onClick={async () => { await logout(); navigate("/"); }}
           className={cn(
             "flex items-center w-full mt-1 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-400 transition-colors text-[13px] font-medium",
             collapsed ? "justify-center p-2" : "gap-2.5 px-3 py-2"
           )}
-          title={collapsed ? "Sign out" : undefined}
         >
           <LogOut className="w-[15px] h-[15px] flex-shrink-0" />
           {!collapsed && <span>Sign Out</span>}
