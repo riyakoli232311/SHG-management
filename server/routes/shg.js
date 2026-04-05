@@ -9,7 +9,14 @@ const router = express.Router();
 router.get('/', requireAuth, async (req, res) => {
   try {
     const sql = getDb();
-    const [shg] = await sql`SELECT * FROM shg_info WHERE user_id = ${req.user.id}`;
+    let shg;
+    if (req.shgId && !req.user) {
+      // Member login — find SHG directly by shgId
+      [shg] = await sql`SELECT * FROM shg_info WHERE id = ${req.shgId}`;
+    } else {
+      // Leader login — find by user_id
+      [shg] = await sql`SELECT * FROM shg_info WHERE user_id = ${req.user.id}`;
+    }
     if (!shg) return res.status(404).json({ success: false, error: 'SHG not found' });
     res.json({ success: true, data: shg });
   } catch (err) {
