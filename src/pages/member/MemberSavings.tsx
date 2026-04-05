@@ -74,31 +74,7 @@ export default function MemberSavings() {
         ))}
       </div>
 
-      {/* Bar chart (CSS only) */}
-      {savings.length > 0 && (
-        <Card className="border-border/60 shadow-sm mb-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700">Monthly Contributions (last 12)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-end gap-1.5 h-20">
-              {savings.slice(-12).map((s, i) => {
-                const max = Math.max(...savings.slice(-12).map((x: any) => Number(x.amount)));
-                const pct = max ? (Number(s.amount) / max) * 100 : 0;
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    <div className="w-full rounded-t bg-gradient-to-t from-[#C2185B] to-[#6A1B9A]" style={{ height: `${Math.max(pct, 6)}%` }} />
-                    <span className="text-[9px] text-muted-foreground">{MONTH_NAMES[s.month]}</span>
-                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none">
-                      ₹{Number(s.amount).toLocaleString("en-IN")}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+     
 
       {/* Table */}
       <Card className="border-border/60 shadow-sm">

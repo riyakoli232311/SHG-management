@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, MapPin, Building2, Calendar, Phone, Shield, Landmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { membersApi } from "@/lib/api";
+import { membersApi, shgApi } from "@/lib/api";
 import { toast } from "sonner";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -18,17 +18,22 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export default function MemberSHG() {
-  const { user, shg } = useAuth();
+  const { user } = useAuth();
+  const [shg, setShg] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await membersApi.list();
-        setMembers(res.data || []);
+        const [shgRes, membersRes] = await Promise.all([
+          shgApi.get(),
+          membersApi.list(),
+        ]);
+        setShg(shgRes.data || null);
+        setMembers(membersRes.data || []);
       } catch {
-        toast.error("Failed to load SHG members");
+        toast.error("Failed to load SHG information");
       } finally {
         setLoading(false);
       }
@@ -69,17 +74,22 @@ export default function MemberSHG() {
             {shg ? (
               <div className="space-y-0">
                 {[
-                  { label: "SHG Name",    value: shg.name,         icon: Building2 },
-                  { label: "Village",     value: shg.village || "—", icon: MapPin },
-                  { label: "District",    value: shg.district || "—", icon: MapPin },
-                  { label: "State",       value: (shg as any).state || "—", icon: MapPin },
-                  { label: "Total Members", value: `${members.length} members`, icon: Users },
+                  { label: "SHG Name",         value: shg.name,                    icon: Building2 },
+                  { label: "Registration No.",  value: shg.registration_number || "—", icon: Building2 },
+                  { label: "Village",           value: shg.village    || "—",       icon: MapPin },
+                  { label: "Block / Tehsil",    value: shg.block      || "—",       icon: MapPin },
+                  { label: "District",          value: shg.district   || "—",       icon: MapPin },
+                  { label: "State",             value: shg.state      || "—",       icon: MapPin },
+                  { label: "Formation Date",    value: shg.formation_date
+                      ? new Date(shg.formation_date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+                      : "—",                                                         icon: Calendar },
+                  { label: "Total Members",     value: `${members.length} members`, icon: Users },
                 ].map(({ label, value, icon: Icon }) => (
                   <div key={label} className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0 text-sm">
-                    <span className="text-muted-foreground flex items-center gap-1.5">
+                    <span className="text-muted-foreground flex items-center gap-1.5 shrink-0 w-36">
                       <Icon className="w-3.5 h-3.5" /> {label}
                     </span>
-                    <span className="font-medium text-gray-800">{value as string}</span>
+                    <span className="font-medium text-gray-800 text-right break-all">{value as string}</span>
                   </div>
                 ))}
               </div>
@@ -101,9 +111,11 @@ export default function MemberSHG() {
           </CardHeader>
           <CardContent>
             {[
-              { label: "Bank Name",    value: (shg as any)?.bank_name    || "—" },
-              { label: "Account No.", value: (shg as any)?.bank_account  || "—" },
-              { label: "IFSC Code",   value: (shg as any)?.ifsc          || "—" },
+              { label: "Bank Name",    value: shg?.bank_name    || "—" },
+              { label: "Account No.", value: shg?.bank_account
+                  ? `****${String(shg.bank_account).slice(-4)}`
+                  : "—" },
+              { label: "IFSC Code",   value: shg?.ifsc          || "—" },
             ].map(({ label, value }) => (
               <div key={label} className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0 text-sm">
                 <span className="text-muted-foreground">{label}</span>
@@ -179,7 +191,7 @@ export default function MemberSHG() {
                     <p className="text-sm text-gray-800 truncate font-medium">{m.name}</p>
                     {m.village && <p className="text-xs text-muted-foreground truncate">{m.village}</p>}
                   </div>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${ROLE_COLORS[m.role] || ROLE_COLORS.member}`}>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${ROLE_COLORS[m.role] || ROLE_COLORS.member}`}>
                     {ROLE_LABELS[m.role]}
                   </span>
                 </div>

@@ -383,71 +383,16 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* ── Row: Activity feed + Quick actions + Schemes ───────── */}
+     
       <div className="grid lg:grid-cols-3 gap-5">
 
-        {/* District activity feed */}
-        <Card className="border-border/60 shadow-sm lg:col-span-1">
-          <CardHeader className="px-5 pt-5 pb-3 flex-row items-center justify-between">
-            <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#6A1B9A]" /> District activity
-            </CardTitle>
-            <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> live
-            </span>
-          </CardHeader>
-          <CardContent className="px-5 pb-5">
-            <div className="space-y-3">
-              {activityFeed.map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-gray-50 border border-border/60 flex items-center justify-center shrink-0 mt-0.5">
-                    {activityIcon(item.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 leading-tight truncate">{item.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <p className="text-xs text-muted-foreground truncate">{item.subtitle}</p>
-                      <span className="text-xs text-muted-foreground shrink-0">· {item.time}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Quick actions + Schemes */}
+       
+
+        
         <div className="lg:col-span-2 flex flex-col gap-5">
 
-          {/* Quick actions */}
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader className="px-5 pt-5 pb-3">
-              <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#F57C00]" /> Quick actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-5 pb-5">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { icon: FileText,  label: 'Post scheme',     sub: 'Announce a govt scheme', color: '#C2185B', href: '/admin/schemes' },
-                  { icon: Download,  label: 'Export report',   sub: 'CSV of all SHG data',    color: '#0288D1', href: '#' },
-                  { icon: MapPin,    label: 'SHG map view',    sub: 'Geographic overview',    color: '#388E3C', href: '#' },
-                  { icon: Bell,      label: 'Send notice',     sub: 'District-wide alert',    color: '#6A1B9A', href: '#' },
-                ].map(({ icon: Icon, label, sub, color, href }) => (
-                  <a key={label} href={href}
-                    className="group flex flex-col gap-2 p-4 rounded-xl border border-border/60 bg-white hover:shadow-sm hover:-translate-y-0.5 transition-all cursor-pointer">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
-                      <Icon className="w-4 h-4" style={{ color }} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900">{label}</p>
-                      <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{sub}</p>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        
 
           {/* Recent schemes */}
           <Card className="border-border/60 shadow-sm flex-1">
