@@ -1,9 +1,8 @@
-// src/pages/member/MemberRepayments.tsx
+// src/pages/member/MemberRepayments.tsx — Dark Theme
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, AlertCircle, Clock, BadgeCheck, AlertTriangle, IndianRupee } from "lucide-react";
+import { DCard, DCardHeader, PageHeader, DSpinner, DBadge, DEmpty } from "@/components/ui/dark";
+import { CheckCircle2, AlertCircle, Clock, BadgeCheck, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { repaymentsApi } from "@/lib/api";
 import { toast } from "sonner";
@@ -18,151 +17,101 @@ export default function MemberRepayments() {
 
   useEffect(() => {
     if (!user?.id) return;
-    async function load() {
-      try {
-        const res = await repaymentsApi.list({ member_id: user!.id });
-        setRepayments(res.data || []);
-      } catch (err: any) {
-        toast.error("Failed to load repayments");
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    repaymentsApi.list({ member_id: user.id }).then(res => setRepayments(res.data || [])).catch(() => toast.error("Failed to load repayments")).finally(() => setLoading(false));
   }, [user]);
 
-  const pending = repayments.filter((r) => r.status === "pending");
-  const overdue = repayments.filter((r) => r.status === "overdue");
-  const paid = repayments.filter((r) => r.status === "paid");
+  if (loading) return <DashboardLayout><DSpinner /></DashboardLayout>;
 
-  const totalPaid = paid.reduce((s, r) => s + Number(r.emi_amount), 0);
+  const pending = repayments.filter(r => r.status === "pending");
+  const overdue = repayments.filter(r => r.status === "overdue");
+  const paid    = repayments.filter(r => r.status === "paid");
+  const totalPaid    = paid.reduce((s, r) => s + Number(r.emi_amount), 0);
   const totalPending = pending.reduce((s, r) => s + Number(r.emi_amount), 0);
   const totalOverdue = overdue.reduce((s, r) => s + Number(r.emi_amount), 0);
+  const displayList  = tab === "pending" ? pending : tab === "overdue" ? overdue : paid;
 
-  const displayList = tab === "pending" ? pending : tab === "overdue" ? overdue : paid;
-
-  if (loading) return (
-    <DashboardLayout>
-      <div className="flex justify-center py-24">
-        <div className="w-8 h-8 rounded-full border-4 border-[#C2185B]/30 border-t-[#C2185B] animate-spin" />
-      </div>
-    </DashboardLayout>
-  );
+  const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" });
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Repayments</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Track your EMI payments and schedule</p>
-      </div>
+      <PageHeader title="My Repayments" subtitle="Track your EMI payments and schedule" />
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
-          { icon: BadgeCheck,    color: "#388E3C", label: "Paid",    value: `₹${totalPaid.toLocaleString("en-IN")}`,    sub: `${paid.length} EMIs` },
-          { icon: Clock,         color: "#F57C00", label: "Pending", value: `₹${totalPending.toLocaleString("en-IN")}`, sub: `${pending.length} EMIs` },
-          { icon: AlertTriangle, color: "#D32F2F", label: "Overdue", value: `₹${totalOverdue.toLocaleString("en-IN")}`, sub: `${overdue.length} EMIs` },
+          { icon: BadgeCheck,    color: "#10B981", label: "Paid",    value: `₹${totalPaid.toLocaleString("en-IN")}`,    sub: `${paid.length} EMIs` },
+          { icon: Clock,         color: "#F59E0B", label: "Pending", value: `₹${totalPending.toLocaleString("en-IN")}`, sub: `${pending.length} EMIs` },
+          { icon: AlertTriangle, color: "#EF4444", label: "Overdue", value: `₹${totalOverdue.toLocaleString("en-IN")}`, sub: `${overdue.length} EMIs` },
         ].map(({ icon: Icon, color, label, value, sub }) => (
-          <Card key={label} className={`border-border/60 shadow-sm ${label === "Overdue" && overdue.length > 0 ? "border-red-200" : ""}`}>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}15` }}>
-                  <Icon className="w-4 h-4" style={{ color }} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className="text-lg font-bold text-gray-900 leading-tight">{value}</p>
-                  <p className="text-xs text-muted-foreground">{sub}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <DCard key={label} className="p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}18` }}><Icon className="w-4 h-4" style={{ color }} /></div>
+              <div><p className="text-xs text-white/30 uppercase tracking-wider">{label}</p><p className="text-lg font-black text-white leading-tight">{value}</p><p className="text-xs text-white/30">{sub}</p></div>
+            </div>
+          </DCard>
         ))}
       </div>
 
       {overdue.length > 0 && (
-        <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
-          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-          <p className="text-sm font-semibold text-red-700">
-            You have {overdue.length} overdue EMI{overdue.length > 1 ? "s" : ""} — please contact your SHG leader.
-          </p>
+        <div className="flex items-start gap-3 rounded-xl px-4 py-3 mb-6" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+          <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+          <p className="text-sm font-bold text-white">You have {overdue.length} overdue EMI{overdue.length > 1 ? "s" : ""} — please contact your SHG leader.</p>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 w-fit">
+      <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit" style={{ background: "rgba(255,255,255,0.04)" }}>
         {([
-          { key: "pending", label: `Pending (${pending.length})` },
-          { key: "overdue", label: `Overdue (${overdue.length})` },
-          { key: "history", label: `Paid (${paid.length})` },
-        ] as const).map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-              tab === t.key ? "bg-white shadow text-[#C2185B]" : "text-muted-foreground hover:text-foreground"
-            } ${t.key === "overdue" && overdue.length > 0 ? "text-red-500" : ""}`}
-          >
+          { key: "pending" as Tab, label: `Pending (${pending.length})` },
+          { key: "overdue" as Tab, label: `Overdue (${overdue.length})`, alert: overdue.length > 0 },
+          { key: "history" as Tab, label: `Paid (${paid.length})` },
+        ]).map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)}
+            className="px-5 py-2 rounded-lg text-sm font-bold transition-all"
+            style={{ background: tab === t.key ? (t.alert ? "rgba(239,68,68,0.15)" : "rgba(194,24,91,0.2)") : "transparent", color: tab === t.key ? (t.alert ? "#f87171" : "#C2185B") : "rgba(255,255,255,0.35)" }}>
             {t.label}
           </button>
         ))}
       </div>
 
-      <Card className="border-border/60">
-        <CardContent className="pt-0">
-          {displayList.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground">
-              {tab === "overdue" && <><CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-green-400" /><p className="text-green-600 font-medium">No overdue EMIs!</p></>}
-              {tab === "pending" && <><Clock className="w-10 h-10 mx-auto mb-2 opacity-20" /><p>No pending EMIs</p></>}
-              {tab === "history" && <><CheckCircle2 className="w-10 h-10 mx-auto mb-2 opacity-20" /><p>No payments recorded yet</p></>}
-            </div>
-          ) : (
+      <DCard>
+        {displayList.length === 0 ? (
+          <div className="py-20">
+            {tab === "overdue"  && <DEmpty icon={CheckCircle2} title="No overdue EMIs — great!" />}
+            {tab === "pending"  && <DEmpty icon={Clock}        title="No pending EMIs" />}
+            {tab === "history"  && <DEmpty icon={CheckCircle2} title="No payments recorded yet" />}
+          </div>
+        ) : (
+          <>
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Paid On</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {displayList.map((r) => (
-                    <TableRow key={r.id} className={r.status === "overdue" ? "bg-red-50/30" : ""}>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(r.due_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                      </TableCell>
-                      <TableCell className="font-semibold">₹{Number(r.emi_amount).toLocaleString("en-IN")}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${
-                          r.status === "paid" ? "bg-green-100 text-green-700" :
-                          r.status === "overdue" ? "bg-red-100 text-red-600" :
-                          "bg-amber-100 text-amber-700"
-                        }`}>
-                          {r.status === "paid" && <CheckCircle2 className="w-3 h-3" />}
-                          {r.status === "overdue" && <AlertCircle className="w-3 h-3" />}
-                          {r.status === "pending" && <Clock className="w-3 h-3" />}
+              <table className="w-full">
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    {["Due Date","EMI Amount","Status","Paid On"].map(h => <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/25">{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayList.map(r => (
+                    <tr key={r.id} className="hover:bg-white/3 transition-colors"
+                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: r.status === "overdue" ? "rgba(239,68,68,0.04)" : "transparent" }}>
+                      <td className="px-4 py-3 text-sm text-white/40">{fmtDate(r.due_date)}</td>
+                      <td className="px-4 py-3 font-black text-white">₹{Number(r.emi_amount).toLocaleString("en-IN")}</td>
+                      <td className="px-4 py-3">
+                        <DBadge variant={r.status === "paid" ? "green" : r.status === "overdue" ? "red" : "amber"}>
                           {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {r.paid_date ? new Date(r.paid_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
-                      </TableCell>
-                    </TableRow>
+                        </DBadge>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-white/35">{r.paid_date ? fmtDate(r.paid_date) : "—"}</td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
-              <div className="mt-4 p-3 bg-gray-50 rounded-xl flex justify-between">
-                <span className="text-sm text-muted-foreground">{displayList.length} records</span>
-                <span className="font-bold text-[#C2185B]">
-                  ₹{displayList.reduce((s, r) => s + Number(r.emi_amount), 0).toLocaleString("en-IN")}
-                </span>
-              </div>
+                </tbody>
+              </table>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="px-5 py-4 flex justify-between" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+              <span className="text-sm text-white/30">{displayList.length} records</span>
+              <span className="font-black" style={{ color: "#C2185B" }}>₹{displayList.reduce((s,r)=>s+Number(r.emi_amount),0).toLocaleString("en-IN")}</span>
+            </div>
+          </>
+        )}
+      </DCard>
     </DashboardLayout>
   );
 }

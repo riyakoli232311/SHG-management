@@ -83,34 +83,49 @@
     --gradient-blush:  linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%);
   }
 
+  /* ── Deep Dark Purple-Black Theme ─────────────────────── */
+  /* Matches Landing page: bg=#0a0a12  card=#0f0520 */
   .dark {
-    --background:         330 22% 9%;
-    --foreground:         28 20% 92%;
-    --card:               330 18% 13%;
-    --card-foreground:    28 20% 92%;
-    --popover:            330 18% 13%;
-    --popover-foreground: 28 20% 92%;
-    --primary:            348 48% 62%;
+    --background:         248 42% 5%;   /* #0a0a12 deep dark */
+    --foreground:         0 0% 95%;     /* soft white */
+
+    --card:               270 80% 7%;   /* #0f0520 dark purple card */
+    --card-foreground:    0 0% 95%;
+
+    --popover:            270 80% 7%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary:            338 80% 44%;  /* #C2185B hot pink */
     --primary-foreground: 0 0% 100%;
-    --secondary:          275 32% 55%;
+
+    --secondary:          275 72% 35%;  /* #6A1B9A deep purple */
     --secondary-foreground: 0 0% 100%;
-    --muted:              330 15% 18%;
-    --muted-foreground:   330 10% 56%;
-    --accent:             25 68% 60%;
-    --accent-foreground:  25 30% 15%;
-    --destructive:        4 65% 50%;
+
+    --muted:              270 40% 12%;  /* dark muted surface */
+    --muted-foreground:   0 0% 50%;     /* dim text */
+
+    --accent:             25 85% 66%;   /* #EF9767 warm peach */
+    --accent-foreground:  25 40% 15%;
+
+    --destructive:        4 80% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border:             330 15% 21%;
-    --input:              330 15% 21%;
-    --ring:               348 48% 62%;
-    --sidebar-background: 330 22% 11%;
-    --sidebar-foreground: 28 15% 82%;
-    --sidebar-primary:    348 48% 62%;
+    --border:             270 30% 14%;  /* subtle purple border */
+    --input:              270 30% 14%;
+    --ring:               338 80% 44%;
+
+    /* Sidebar — dark matching landing palette */
+    --sidebar-background: 248 45% 4%;   /* #07070f almost black */
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-primary:    338 80% 44%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent:     330 20% 17%;
-    --sidebar-accent-foreground: 28 15% 82%;
-    --sidebar-border:     330 18% 19%;
-    --sidebar-ring:       25 68% 60%;
+    --sidebar-accent:     270 60% 12%;
+    --sidebar-accent-foreground: 0 0% 85%;
+    --sidebar-border:     270 30% 12%;
+    --sidebar-ring:       25 85% 66%;
+
+    /* Shadows for dark */
+    --shadow-card: 0 4px 24px rgba(194,24,91,0.08), 0 1px 4px rgba(0,0,0,0.4);
+    --shadow-card-hover: 0 8px 40px rgba(194,24,91,0.18), 0 2px 8px rgba(0,0,0,0.5);
   }
 }
 
@@ -215,6 +230,45 @@
     background-color: hsl(28, 30%, 97%);
     background-image: var(--gradient-page);
     min-height: 100vh;
+  }
+
+  /* ── 3D & Glassmorphism Utilities ──────────────────────── */
+  /* Dark-first: matches landing page deep dark theme */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .glass-card-3d {
+    @apply glass-panel rounded-2xl overflow-hidden;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+  }
+
+  .glass-card-3d:hover {
+    box-shadow:
+      0 25px 60px rgba(0, 0, 0, 0.6),
+      0 0 30px rgba(194, 24, 91, 0.12),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  /* Animated Blob Background */
+  .blob {
+    @apply absolute rounded-full filter pointer-events-none;
+    filter: blur(100px);
+    opacity: 0.25;
+    mix-blend-mode: screen;
+    animation: blob-wobble 20s infinite alternate;
+  }
+
+  @keyframes blob-wobble {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
   }
 }
 

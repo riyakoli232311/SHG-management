@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
 import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -47,6 +48,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
     <TooltipProvider>
       <AuthProvider>
         <AdminAuthProvider>
@@ -105,6 +107,7 @@ const App = () => (
         </AdminAuthProvider>
       </AuthProvider>
     </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

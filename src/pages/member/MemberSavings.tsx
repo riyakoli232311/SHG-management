@@ -1,9 +1,8 @@
-// src/pages/member/MemberSavings.tsx
+// src/pages/member/MemberSavings.tsx — Dark Theme
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PiggyBank, TrendingUp, Calendar } from "lucide-react";
+import { DCard, DCardHeader, PageHeader, DSpinner, DBadge, DEmpty } from "@/components/ui/dark";
+import { PiggyBank, TrendingUp, Calendar, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { savingsApi } from "@/lib/api";
 import { toast } from "sonner";
@@ -17,112 +16,70 @@ export default function MemberSavings() {
 
   useEffect(() => {
     if (!user?.id) return;
-    async function load() {
-      try {
-        const res = await savingsApi.list({ member_id: user!.id });
-        setSavings(res.data || []);
-      } catch {
-        toast.error("Failed to load savings");
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    savingsApi.list({ member_id: user.id }).then(res => setSavings(res.data || [])).catch(() => toast.error("Failed to load savings")).finally(() => setLoading(false));
   }, [user]);
+
+  if (loading) return <DashboardLayout><DSpinner /></DashboardLayout>;
 
   const total = savings.reduce((s, r) => s + Number(r.amount), 0);
   const avg = savings.length ? Math.round(total / savings.length) : 0;
   const thisYear = new Date().getFullYear();
-  const thisYearSavings = savings.filter((s) => s.year === thisYear).reduce((sum, r) => sum + Number(r.amount), 0);
-
-  if (loading) return (
-    <DashboardLayout>
-      <div className="flex justify-center py-24">
-        <div className="w-8 h-8 rounded-full border-4 border-[#C2185B]/30 border-t-[#C2185B] animate-spin" />
-      </div>
-    </DashboardLayout>
-  );
+  const thisYearSavings = savings.filter(s => s.year === thisYear).reduce((sum, r) => sum + Number(r.amount), 0);
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Savings</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Your monthly contribution history</p>
-      </div>
+      <PageHeader title="My Savings" subtitle="Your monthly contribution history" />
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
-          { icon: PiggyBank,  color: "#C2185B", label: "Total Savings",  value: `₹${total.toLocaleString("en-IN")}`,        sub: `${savings.length} contributions` },
-          { icon: Calendar,   color: "#6A1B9A", label: "This Year",      value: `₹${thisYearSavings.toLocaleString("en-IN")}`, sub: `${thisYear}` },
-          { icon: TrendingUp, color: "#388E3C", label: "Monthly Average", value: `₹${avg.toLocaleString("en-IN")}`,           sub: "per month" },
+          { icon: PiggyBank,  color: "#C2185B", label: "Total Savings",   value: `₹${total.toLocaleString("en-IN")}`,          sub: `${savings.length} contributions` },
+          { icon: Calendar,   color: "#7C3AED", label: "This Year",       value: `₹${thisYearSavings.toLocaleString("en-IN")}`, sub: String(thisYear) },
+          { icon: TrendingUp, color: "#10B981", label: "Monthly Average", value: `₹${avg.toLocaleString("en-IN")}`,             sub: "per month" },
         ].map(({ icon: Icon, color, label, value, sub }) => (
-          <Card key={label} className="border-border/60 shadow-sm">
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}15` }}>
-                  <Icon className="w-4 h-4" style={{ color }} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className="text-lg font-bold text-gray-900 leading-tight">{value}</p>
-                  <p className="text-xs text-muted-foreground">{sub}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <DCard key={label} className="p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}18` }}><Icon className="w-4 h-4" style={{ color }} /></div>
+              <div><p className="text-xs text-white/30 uppercase tracking-wider">{label}</p><p className="text-lg font-black text-white leading-tight">{value}</p><p className="text-xs text-white/30">{sub}</p></div>
+            </div>
+          </DCard>
         ))}
       </div>
 
-     
-
-      {/* Table */}
-      <Card className="border-border/60 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <PiggyBank className="w-4 h-4 text-[#C2185B]" /> All Contributions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {savings.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <PiggyBank className="w-10 h-10 mx-auto mb-2 opacity-20" />
-              <p>No savings recorded yet</p>
+      <DCard>
+        <DCardHeader>
+          <h3 className="text-sm font-bold text-white flex items-center gap-2"><PiggyBank className="w-4 h-4 text-[#C2185B]" /> All Contributions</h3>
+          <span className="text-xs text-white/30">{savings.length} entries</span>
+        </DCardHeader>
+        {savings.length === 0 ? (
+          <div className="py-16"><DEmpty icon={PiggyBank} title="No savings recorded yet" /></div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    {["Month","Amount","Mode","Date"].map(h => <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/25">{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {savings.map(s => (
+                    <tr key={s.id} className="hover:bg-white/3 transition-colors" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                      <td className="px-4 py-3 font-bold text-white flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />{MONTH_NAMES[s.month]} {s.year}</td>
+                      <td className="px-4 py-3 font-black text-emerald-400">₹{Number(s.amount).toLocaleString("en-IN")}</td>
+                      <td className="px-4 py-3"><DBadge variant="gray">{s.payment_mode}</DBadge></td>
+                      <td className="px-4 py-3 text-xs text-white/35">{s.date ? new Date(s.date).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead>Month</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Mode</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {savings.map((s) => (
-                      <TableRow key={s.id} className="hover:bg-gray-50/50">
-                        <TableCell className="font-medium">{MONTH_NAMES[s.month]} {s.year}</TableCell>
-                        <TableCell><span className="font-semibold text-green-700">₹{Number(s.amount).toLocaleString("en-IN")}</span></TableCell>
-                        <TableCell><span className="text-xs capitalize bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{s.payment_mode}</span></TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {s.date ? new Date(s.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              <div className="mt-4 p-3 bg-[#C2185B]/5 rounded-xl flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Total</span>
-                <span className="text-lg font-bold text-[#C2185B]">₹{total.toLocaleString("en-IN")}</span>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            <div className="px-5 py-4 flex justify-between" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+              <span className="text-sm text-white/30">Total</span>
+              <span className="text-lg font-black" style={{ color: "#C2185B" }}>₹{total.toLocaleString("en-IN")}</span>
+            </div>
+          </>
+        )}
+      </DCard>
     </DashboardLayout>
   );
 }

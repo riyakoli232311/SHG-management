@@ -1,300 +1,186 @@
-// src/pages/Repayments.tsx
+// src/pages/Repayments.tsx — Dark Theme
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-  CheckCircle2, AlertCircle, Clock, IndianRupee,
-  CalendarCheck, TrendingUp, AlertTriangle, BadgeCheck,
-} from "lucide-react";
+import { DCard, DCardHeader, PageHeader, DBadge, DBtn, DSpinner, DEmpty } from "@/components/ui/dark";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CheckCircle2, AlertCircle, Clock, CalendarCheck, TrendingUp, AlertTriangle, BadgeCheck } from "lucide-react";
 import { repaymentsApi } from "@/lib/api";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
-type Tab = "pending" | "overdue" | "history";
+type TabKey = "pending" | "overdue" | "history";
 
 export default function Repayments() {
   const [allRepayments, setAllRepayments] = useState<any[]>([]);
   const [loading, setLoading]             = useState(true);
-  const [tab, setTab]                     = useState<Tab>("pending");
-
-  // Pay confirm dialog
-  const [payTarget, setPayTarget]   = useState<any | null>(null);
-  const [paying, setPaying]         = useState(false);
-  const [payDate, setPayDate]       = useState(new Date().toISOString().split("T")[0]);
+  const [tab, setTab]                     = useState<TabKey>("pending");
+  const [payTarget, setPayTarget]         = useState<any | null>(null);
+  const [paying, setPaying]               = useState(false);
+  const [payDate, setPayDate]             = useState(new Date().toISOString().split("T")[0]);
 
   useEffect(() => { loadAll(); }, []);
 
   async function loadAll() {
     setLoading(true);
-    try {
-      const res = await repaymentsApi.list();
-      setAllRepayments(res.data || []);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load repayments");
-    } finally {
-      setLoading(false);
-    }
+    try { const res = await repaymentsApi.list(); setAllRepayments(res.data || []); }
+    catch (err: any) { toast.error(err.message || "Failed to load repayments"); }
+    finally { setLoading(false); }
   }
 
   async function handlePay() {
     if (!payTarget) return;
     setPaying(true);
-    try {
-      await repaymentsApi.pay(payTarget.id, payDate);
-      toast.success(`EMI marked as paid for ${payTarget.member_name}`);
-      setPayTarget(null);
-      loadAll();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to mark payment");
-    } finally {
-      setPaying(false);
-    }
+    try { await repaymentsApi.pay(payTarget.id, payDate); toast.success(`EMI marked as paid for ${payTarget.member_name}`); setPayTarget(null); loadAll(); }
+    catch (err: any) { toast.error(err.message || "Failed"); }
+    finally { setPaying(false); }
   }
 
-  // ── Derived data ──────────────────────────────────────────
-  const pending  = allRepayments.filter(r => r.status === "pending");
-  const overdue  = allRepayments.filter(r => r.status === "overdue");
-  const paid     = allRepayments.filter(r => r.status === "paid");
-
-  const totalCollected  = paid.reduce((s, r) => s + Number(r.emi_amount), 0);
-  const totalPending    = pending.reduce((s, r) => s + Number(r.emi_amount), 0);
-  const totalOverdue    = overdue.reduce((s, r) => s + Number(r.emi_amount), 0);
-
-  // Due this month
+  const pending = allRepayments.filter(r => r.status === "pending");
+  const overdue = allRepayments.filter(r => r.status === "overdue");
+  const paid    = allRepayments.filter(r => r.status === "paid");
+  const totalCollected = paid.reduce((s, r) => s + Number(r.emi_amount), 0);
+  const totalPending   = pending.reduce((s, r) => s + Number(r.emi_amount), 0);
+  const totalOverdue   = overdue.reduce((s, r) => s + Number(r.emi_amount), 0);
   const now = new Date();
-  const dueThisMonth = allRepayments.filter(r => {
-    const d = new Date(r.due_date);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-      && r.status !== "paid";
-  });
-
+  const dueThisMonth = allRepayments.filter(r => { const d = new Date(r.due_date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && r.status !== "paid"; });
   const displayList = tab === "pending" ? pending : tab === "overdue" ? overdue : paid;
 
-  // ── Row component ─────────────────────────────────────────
-  function RepRow({ r }: { r: any }) {
-    const isActionable = r.status === "pending" || r.status === "overdue";
-    return (
-      <TableRow className={`hover:bg-gray-50/50 ${r.status === "overdue" ? "bg-red-50/30" : ""}`}>
-        <TableCell>
-          <Link to={`/members/${r.member_id}`}
-            className="font-medium text-gray-900 hover:text-[#C2185B] transition-colors">
-            {r.member_name}
-          </Link>
-        </TableCell>
-        <TableCell className="text-muted-foreground text-sm">
-          {new Date(r.due_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-        </TableCell>
-        <TableCell>
-          <span className="font-semibold text-gray-900">
-            ₹{Number(r.emi_amount).toLocaleString("en-IN")}
-          </span>
-        </TableCell>
-        <TableCell>
-          <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${
-            r.status === "paid"    ? "bg-green-100 text-green-700" :
-            r.status === "overdue" ? "bg-red-100 text-red-600" :
-            "bg-amber-100 text-amber-700"
-          }`}>
-            {r.status === "paid"    && <CheckCircle2 className="w-3 h-3" />}
-            {r.status === "overdue" && <AlertCircle  className="w-3 h-3" />}
-            {r.status === "pending" && <Clock        className="w-3 h-3" />}
-            {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
-          </span>
-        </TableCell>
-        <TableCell className="text-muted-foreground text-sm">
-          {r.paid_date
-            ? new Date(r.paid_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-            : "—"}
-        </TableCell>
-        <TableCell>
-          {isActionable && (
-            <Button
-              size="sm"
-              onClick={() => { setPayTarget(r); setPayDate(new Date().toISOString().split("T")[0]); }}
-              className="bg-[#C2185B] hover:bg-[#AD1457] text-white h-7 text-xs px-3"
-            >
-              Mark Paid
-            </Button>
-          )}
-        </TableCell>
-      </TableRow>
-    );
-  }
+  const statusBadge = (s: string) => {
+    if (s === "paid")    return <DBadge variant="green">Paid</DBadge>;
+    if (s === "overdue") return <DBadge variant="red">Overdue</DBadge>;
+    return <DBadge variant="amber">Pending</DBadge>;
+  };
 
-  if (loading) return (
-    <DashboardLayout>
-      <div className="flex justify-center py-24">
-        <div className="w-8 h-8 rounded-full border-4 border-[#C2185B]/30 border-t-[#C2185B] animate-spin" />
-      </div>
-    </DashboardLayout>
-  );
+  const TABS = [
+    { key: "pending" as TabKey,  label: `Pending (${pending.length})` },
+    { key: "overdue" as TabKey,  label: `Overdue (${overdue.length})`, alert: overdue.length > 0 },
+    { key: "history" as TabKey,  label: `History (${paid.length})` },
+  ];
+
+  if (loading) return <DashboardLayout><DSpinner /></DashboardLayout>;
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Repayments</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Track EMI collections across all active loans</p>
-      </div>
+      <PageHeader title="Repayments" subtitle="Track EMI collections across all active loans" />
 
-      {/* Stat cards */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { icon: BadgeCheck,    color: "#388E3C", label: "Total Collected",  value: `₹${totalCollected.toLocaleString("en-IN")}`,  sub: `${paid.length} EMIs paid` },
-          { icon: Clock,         color: "#F57C00", label: "Pending",          value: `₹${totalPending.toLocaleString("en-IN")}`,    sub: `${pending.length} EMIs due` },
-          { icon: AlertTriangle, color: "#D32F2F", label: "Overdue",          value: `₹${totalOverdue.toLocaleString("en-IN")}`,   sub: `${overdue.length} EMIs overdue` },
-          { icon: CalendarCheck, color: "#6A1B9A", label: "Due This Month",   value: dueThisMonth.length,                           sub: `EMIs to collect` },
+          { icon: BadgeCheck,    color: "#10B981", label: "Total Collected",  value: `₹${totalCollected.toLocaleString("en-IN")}`,  sub: `${paid.length} EMIs paid` },
+          { icon: Clock,         color: "#F59E0B", label: "Pending",          value: `₹${totalPending.toLocaleString("en-IN")}`,    sub: `${pending.length} EMIs due` },
+          { icon: AlertTriangle, color: "#EF4444", label: "Overdue",          value: `₹${totalOverdue.toLocaleString("en-IN")}`,   sub: `${overdue.length} EMIs overdue` },
+          { icon: CalendarCheck, color: "#7C3AED", label: "Due This Month",   value: dueThisMonth.length,                          sub: "EMIs to collect" },
         ].map(({ icon: Icon, color, label, value, sub }) => (
-          <Card key={label} className={`border-border/60 shadow-sm ${label === "Overdue" && overdue.length > 0 ? "border-red-200" : ""}`}>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: `${color}15` }}>
-                  <Icon className="w-4 h-4" style={{ color }} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className="text-xl font-bold text-gray-900 leading-tight">{value}</p>
-                  <p className="text-xs text-muted-foreground">{sub}</p>
-                </div>
+          <DCard key={label} className="p-5 hover:border-white/12 transition-all">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}18` }}>
+                <Icon className="w-4 h-4" style={{ color }} />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <p className="text-xs text-white/30 uppercase tracking-wider">{label}</p>
+                <p className="text-xl font-black text-white leading-tight">{value}</p>
+                <p className="text-xs text-white/30">{sub}</p>
+              </div>
+            </div>
+          </DCard>
         ))}
       </div>
 
-      {/* Overdue alert banner */}
+      {/* Overdue alert */}
       {overdue.length > 0 && (
-        <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-6">
-          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-xl px-4 py-3 mb-6" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+          <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-red-700">
-              {overdue.length} overdue EMI{overdue.length > 1 ? "s" : ""} need immediate attention
-            </p>
-            <p className="text-xs text-red-600 mt-0.5">
-              Total overdue: ₹{totalOverdue.toLocaleString("en-IN")} · 
-              Members: {[...new Set(overdue.map(r => r.member_name))].join(", ")}
-            </p>
+            <p className="text-sm font-bold text-white">{overdue.length} overdue EMI{overdue.length > 1 ? "s" : ""} need immediate attention</p>
+            <p className="text-xs text-red-400/80 mt-0.5">Total overdue: ₹{totalOverdue.toLocaleString("en-IN")} · Members: {[...new Set(overdue.map(r => r.member_name))].join(", ")}</p>
           </div>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 w-fit">
-        {([
-          { key: "pending",  label: `Pending (${pending.length})` },
-          { key: "overdue",  label: `Overdue (${overdue.length})` },
-          { key: "history",  label: `History (${paid.length})` },
-        ] as const).map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-              tab === t.key ? "bg-white shadow text-[#C2185B]" : "text-muted-foreground hover:text-foreground"
-            } ${t.key === "overdue" && overdue.length > 0 ? "text-red-500" : ""}`}>
+      <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit" style={{ background: "rgba(255,255,255,0.04)" }}>
+        {TABS.map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)} className="px-5 py-2 rounded-lg text-sm font-bold transition-all"
+            style={{ background: tab === t.key ? (t.alert ? "rgba(239,68,68,0.15)" : "rgba(194,24,91,0.2)") : "transparent", color: tab === t.key ? (t.alert ? "#f87171" : "#C2185B") : "rgba(255,255,255,0.35)" }}>
             {t.label}
           </button>
         ))}
       </div>
 
       {/* Table */}
-      <Card className="border-border/60">
-        <CardContent className="pt-0">
-          {displayList.length === 0 ? (
-            <div className="py-20 text-center text-muted-foreground">
-              {tab === "pending"  && <><Clock className="w-10 h-10 mx-auto mb-2 opacity-20" /><p>No pending EMIs</p></>}
-              {tab === "overdue"  && <><AlertCircle className="w-10 h-10 mx-auto mb-2 opacity-20 text-green-500" /><p className="text-green-600 font-medium">No overdue EMIs — great!</p></>}
-              {tab === "history"  && <><CheckCircle2 className="w-10 h-10 mx-auto mb-2 opacity-20" /><p>No payments recorded yet</p></>}
+      <DCard>
+        {displayList.length === 0 ? (
+          <div className="py-20">
+            {tab === "pending"  && <DEmpty icon={Clock}         title="No pending EMIs" />}
+            {tab === "overdue"  && <DEmpty icon={CheckCircle2}  title="No overdue EMIs — great!" />}
+            {tab === "history"  && <DEmpty icon={CheckCircle2}  title="No payments recorded yet" />}
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px]">
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    {["Member","Due Date","EMI Amount","Status","Paid On",""].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-white/25">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayList.map(r => (
+                    <tr key={r.id} className="hover:bg-white/3 transition-colors" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: r.status === "overdue" ? "rgba(239,68,68,0.04)" : "transparent" }}>
+                      <td className="px-4 py-3">
+                        <Link to={`/members/${r.member_id}`} className="font-bold text-white hover:text-pink-300 transition-colors">{r.member_name}</Link>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-white/40">{new Date(r.due_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</td>
+                      <td className="px-4 py-3 text-sm font-black text-white">₹{Number(r.emi_amount).toLocaleString("en-IN")}</td>
+                      <td className="px-4 py-3">{statusBadge(r.status)}</td>
+                      <td className="px-4 py-3 text-xs text-white/35">{r.paid_date ? new Date(r.paid_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+                      <td className="px-4 py-3">
+                        {(r.status === "pending" || r.status === "overdue") && (
+                          <button onClick={() => { setPayTarget(r); setPayDate(new Date().toISOString().split("T")[0]); }}
+                            className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all hover:opacity-90"
+                            style={{ background: "linear-gradient(135deg,#C2185B,#6A1B9A)", color: "#fff" }}>
+                            Mark Paid
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead>Member</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead>EMI Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Paid On</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {displayList.map(r => <RepRow key={r.id} r={r} />)}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Footer totals */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-xl flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  {displayList.length} {tab === "history" ? "payments" : "EMIs"}
-                </span>
-                <span className="text-base font-bold text-[#C2185B]">
-                  ₹{displayList.reduce((s, r) => s + Number(r.emi_amount), 0).toLocaleString("en-IN")}
-                </span>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            <div className="px-5 py-4 flex justify-between items-center" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+              <span className="text-sm text-white/30">{displayList.length} {tab === "history" ? "payments" : "EMIs"}</span>
+              <span className="text-base font-black" style={{ color: "#C2185B" }}>₹{displayList.reduce((s, r) => s + Number(r.emi_amount), 0).toLocaleString("en-IN")}</span>
+            </div>
+          </>
+        )}
+      </DCard>
 
       {/* Mark Paid Dialog */}
       <Dialog open={!!payTarget} onOpenChange={o => !o && setPayTarget(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-              Mark EMI as Paid
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-sm" style={{ background: "#0a041a", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <DialogHeader><DialogTitle className="text-white flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-emerald-400" /> Mark EMI as Paid</DialogTitle></DialogHeader>
           {payTarget && (
             <div className="space-y-4 py-1">
-              {/* Summary */}
-              <div className="rounded-xl bg-gray-50 p-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Member</span>
-                  <span className="font-medium">{payTarget.member_name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Due Date</span>
-                  <span className="font-medium">
-                    {new Date(payTarget.due_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Amount</span>
-                  <span className="font-bold text-[#C2185B]">₹{Number(payTarget.emi_amount).toLocaleString("en-IN")}</span>
-                </div>
+              <div className="rounded-xl p-4 space-y-2.5" style={{ background: "rgba(255,255,255,0.04)" }}>
+                {[["Member", payTarget.member_name], ["Due Date", new Date(payTarget.due_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })], ["Amount", `₹${Number(payTarget.emi_amount).toLocaleString("en-IN")}`]].map(([k, v]) => (
+                  <div key={k} className="flex justify-between text-sm">
+                    <span className="text-white/35">{k}</span>
+                    <span className="font-bold text-white">{v}</span>
+                  </div>
+                ))}
               </div>
-
-              {/* Payment date */}
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Payment Date</label>
-                <input
-                  type="date"
-                  value={payDate}
-                  onChange={e => setPayDate(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#C2185B]"
-                />
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1.5">Payment Date</p>
+                <input type="date" value={payDate} onChange={e => setPayDate(e.target.value)}
+                  className="w-full rounded-xl px-4 py-2.5 text-sm text-white font-medium outline-none"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
               </div>
-
               <div className="flex gap-3 pt-1">
-                <Button variant="outline" className="flex-1" onClick={() => setPayTarget(null)}>
-                  Cancel
-                </Button>
-                <Button
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  onClick={handlePay} disabled={paying}
-                >
-                  {paying ? "Saving..." : "Confirm Payment"}
-                </Button>
+                <DBtn variant="ghost" className="flex-1" onClick={() => setPayTarget(null)}>Cancel</DBtn>
+                <DBtn variant="success" className="flex-1" onClick={handlePay} disabled={paying}>{paying ? "Saving…" : "Confirm Payment"}</DBtn>
               </div>
             </div>
           )}
