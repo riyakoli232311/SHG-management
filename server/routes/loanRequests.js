@@ -5,6 +5,8 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import axios from 'axios';
+import FormData from 'form-data';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +53,19 @@ router.get('/member', requireAuth, async (req, res) => {
       WHERE la.member_id = ${memberId}
       ORDER BY la.created_at DESC
     `;
+
+    // attach documents
+    for (const requestItem of requests) {
+      const docs = await sql`SELECT doc_id, document_type, file_path, status FROM loan_documents WHERE loan_id = ${requestItem.loan_id}`;
+      
+      for (const d of docs) {
+         if (d.status === 'request_reupload') {
+           const [log] = await sql`SELECT remarks FROM verification_logs WHERE document_id = ${d.doc_id} ORDER BY verified_at DESC LIMIT 1`;
+           if (log) d.remarks = log.remarks;
+         }
+      }
+      requestItem.documents = docs;
+    }
     
     res.json({ success: true, data: requests });
   } catch (err) {
@@ -134,21 +149,46 @@ router.post('/apply', requireAuth, (req, res, next) => {
       if (req.files?.['aadhar_image']?.[0]) {
         documents.push({
           type: 'Aadhaar Card',
-          path: '/uploads/loans/' + req.files['aadhar_image'][0].filename
+          path: '/uploads/loans/' + req.files['aadhar_image'][0].filename,
+          fsPath: req.files['aadhar_image'][0].path
         });
       }
       if (req.files?.['passbook_image']?.[0]) {
         documents.push({
           type: 'Bank Passbook',
-          path: '/uploads/loans/' + req.files['passbook_image'][0].filename
+          path: '/uploads/loans/' + req.files['passbook_image'][0].filename,
+          fsPath: req.files['passbook_image'][0].path
         });
       }
 
       if (documents.length > 0) {
         for (const doc of documents) {
+          let extractedData = {};
+          let status = 'pending';
+
+          try {
+            // Call Python OCR Service
+            const form = new FormData();
+            form.append('file', fs.createReadStream(doc.fsPath));
+            form.append('document_type', doc.type);
+            form.append('member_name', member.name);
+
+            const pyRes = await axios.post('http://127.0.0.1:8000/process-document', form, {
+              headers: { ...form.getHeaders() },
+              timeout: 10000 // 10 seconds timeout for OCR
+            });
+
+            if (pyRes.data && pyRes.data.status) {
+              extractedData = pyRes.data.extracted_data || {};
+              status = pyRes.data.status;
+            }
+          } catch (ocrErr) {
+            console.error("OCR Service failed for " + doc.type, ocrErr.message);
+          }
+
           await sql`
-            INSERT INTO loan_documents (loan_id, document_type, file_path)
-            VALUES (${application.loan_id}, ${doc.type}, ${doc.path})
+            INSERT INTO loan_documents (loan_id, document_type, file_path, extracted_data, status)
+            VALUES (${application.loan_id}, ${doc.type}, ${doc.path}, ${JSON.stringify(extractedData)}, ${status})
           `;
         }
       }
@@ -261,6 +301,108 @@ router.put('/leader-approve', requireShg, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Failed to process application' });
+  }
+});
+
+// ── PUT /api/loan/document/:doc_id/verify ─────────────────────
+router.put('/document/:doc_id/verify', requireShg, async (req, res) => {
+  try {
+    const { doc_id } = req.params;
+    const { status, remarks, action } = req.body; // status: 'approved' | 'rejected', action: same
+
+    if (!['approved', 'rejected', 'request_reupload'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid document status' });
+    }
+
+    const sql = getDb();
+
+    // Verify it belongs to shg
+    const [doc] = await sql`
+      SELECT d.* FROM loan_documents d
+      JOIN loan_applications la ON la.loan_id = d.loan_id
+      WHERE d.doc_id = ${doc_id} AND la.shg_id = ${req.shgId}
+    `;
+
+    if (!doc) {
+      return res.status(404).json({ success: false, error: 'Document not found' });
+    }
+
+    // Update document status
+    await sql`
+      UPDATE loan_documents 
+      SET status = ${status}
+      WHERE doc_id = ${doc_id}
+    `;
+
+    // Insert into verification_logs
+    await sql`
+      INSERT INTO verification_logs (document_id, action, remarks, verified_by)
+      VALUES (${doc_id}, ${action || status}, ${remarks || null}, 'Leader')
+    `;
+
+    res.json({ success: true, message: `Document marked as ${status}` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Failed to verify document' });
+  }
+});
+
+// ── POST /api/loan/document/:doc_id/reupload ─────────────────
+const singleUpload = upload.single('new_document');
+router.post('/document/:doc_id/reupload', requireAuth, singleUpload, async (req, res) => {
+  try {
+    const { doc_id } = req.params;
+    if (!req.file) return res.status(400).json({ success: false, error: 'File is required' });
+
+    const sql = getDb();
+    const [doc] = await sql`SELECT * FROM loan_documents WHERE doc_id = ${doc_id}`;
+    if (!doc) return res.status(404).json({ success: false, error: 'Document not found' });
+
+    const [member] = await sql`
+      SELECT m.name FROM members m
+      JOIN loan_applications la ON la.member_id = m.id
+      WHERE la.loan_id = ${doc.loan_id}
+    `;
+
+    let extractedData = {};
+    let status = 'pending';
+    
+    try {
+      const form = new FormData();
+      form.append('file', fs.createReadStream(req.file.path));
+      form.append('document_type', doc.document_type);
+      form.append('member_name', member ? member.name : '');
+
+      const pyRes = await axios.post('http://127.0.0.1:8000/process-document', form, {
+        headers: { ...form.getHeaders() },
+        timeout: 10000
+      });
+
+      if (pyRes.data && pyRes.data.status) {
+        extractedData = pyRes.data.extracted_data || {};
+        status = pyRes.data.status;
+      }
+    } catch (ocrErr) {
+      console.error("OCR Reupload failed", ocrErr.message);
+    }
+
+    const docPath = '/uploads/loans/' + req.file.filename;
+
+    await sql`
+      UPDATE loan_documents 
+      SET file_path = ${docPath}, extracted_data = ${JSON.stringify(extractedData)}, status = ${status}, upload_time = CURRENT_TIMESTAMP
+      WHERE doc_id = ${doc_id}
+    `;
+
+    await sql`
+      INSERT INTO verification_logs (document_id, action, remarks, verified_by)
+      VALUES (${doc_id}, 'reuploaded', 'Document re-resubmitted by member', 'Member')
+    `;
+
+    res.json({ success: true, message: 'Document re-uploaded successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Failed to process re-upload' });
   }
 });
 

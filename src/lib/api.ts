@@ -138,6 +138,12 @@ export const loanRequestsApi = {
 
   approveLoan: (data: { loan_id: string; status: 'approved' | 'rejected' }) =>
     request<any>('PUT', '/api/loan/leader-approve', data),
+
+  verifyDocument: (doc_id: string, data: { status: 'approved' | 'rejected' | 'request_reupload'; remarks?: string; action?: string }) =>
+    request<any>('PUT', `/api/loan/document/${doc_id}/verify`, data),
+
+  reuploadDocument: (doc_id: string, data: FormData) =>
+    request<any>('POST', `/api/loan/document/${doc_id}/reupload`, data, true),
 };
 
 // ── Repayments ────────────────────────────────────────────────

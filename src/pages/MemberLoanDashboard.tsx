@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Landmark, ArrowRight, ShieldCheck, UserCheck, CalendarDays, CheckCircle2, Clock, XCircle, FilePlus } from "lucide-react";
+import { Landmark, ArrowRight, ShieldCheck, UserCheck, CalendarDays, CheckCircle2, Clock, XCircle, FilePlus, AlertCircle, Upload } from "lucide-react";
 
 const PURPOSES = [
   "Dairy Farming", "Vegetable Trading", "Tailoring", "Poultry",
@@ -52,6 +52,37 @@ export default function MemberLoanDashboard() {
     }
   }
 
+  const [reuploadingDoc, setReuploadingDoc] = useState<string | null>(null);
+
+  async function handleReupload(docId: string, file: File) {
+    if (!file) return;
+    
+    // Size and type validation
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please select a valid JPG/PNG image");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File exceeds 5MB limit");
+      return;
+    }
+
+    setReuploadingDoc(docId);
+    try {
+      const formData = new FormData();
+      formData.append('new_document', file);
+      
+      await loanRequestsApi.reuploadDocument(docId, formData);
+      toast.success("Document re-uploaded successfully for verification");
+      loadRequests();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to re-upload document');
+    } finally {
+      setReuploadingDoc(null);
+    }
+  }
+
   async function handleApply(e: React.FormEvent) {
     e.preventDefault();
     if (!form.amount || !form.purpose || !form.aadhar_number) {
@@ -60,6 +91,23 @@ export default function MemberLoanDashboard() {
     }
     if (!form.aadhar_image || !form.passbook_image) {
       toast.error("Please upload both Aadhaar and Passbook images");
+      return;
+    }
+
+    const isValidImage = (file: File) => {
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!validTypes.includes(file.type)) {
+        toast.error(`${file.name} is not a valid JPG/PNG image`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds 5MB size limit`);
+        return false;
+      }
+      return true;
+    };
+
+    if (!isValidImage(form.aadhar_image) || !isValidImage(form.passbook_image)) {
       return;
     }
 
@@ -168,6 +216,55 @@ export default function MemberLoanDashboard() {
                     </div>
                   </div>
                 </div>
+
+                {req.documents && req.documents.length > 0 && (
+                  <div className="mt-4 pt-4 border-t space-y-2">
+                    <p className="text-xs font-semibold text-gray-700 mb-2">Submitted Documents</p>
+                    {req.documents.map((d: any) => (
+                      <div key={d.doc_id} className={`p-3 rounded-lg border flex items-center justify-between gap-3 ${d.status === 'request_reupload' ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-100'}`}>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                             {d.status === 'request_reupload' && <AlertCircle className="w-4 h-4 text-orange-600" />}
+                             <p className={`text-sm font-semibold capitalize ${d.status === 'request_reupload' ? 'text-orange-900' : 'text-gray-800'}`}>{d.document_type}</p>
+                          </div>
+                          <div className="flex gap-2 items-center mt-1">
+                            <span className="text-[10px] font-bold text-gray-500 uppercase shrink-0">Status: {d.status.replace('_', ' ')}</span>
+                            {d.status === 'request_reupload' && d.remarks && (
+                               <span className="text-[10px] text-orange-700 bg-orange-100/50 px-2 py-0.5 rounded truncate max-w-[150px]" title={d.remarks}>Reason: {d.remarks}</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {d.status === 'request_reupload' && (
+                           <div>
+                             <Input 
+                                type="file" 
+                                id={`reupload-${d.doc_id}`}
+                                className="hidden"
+                                accept=".jpg,.jpeg,.png"
+                                onChange={(e) => {
+                                  if (e.target.files?.[0]) {
+                                    handleReupload(d.doc_id, e.target.files[0]);
+                                    // Reset input so it can be re-selected if failed
+                                    e.target.value = '';
+                                  }
+                                }}
+                             />
+                             <Button 
+                               size="sm" 
+                               variant="outline" 
+                               className="h-8 bg-white border-orange-300 text-orange-700 hover:bg-orange-100 shadow-sm"
+                               onClick={() => document.getElementById(`reupload-${d.doc_id}`)?.click()}
+                               disabled={reuploadingDoc === d.doc_id}
+                             >
+                               {reuploadingDoc === d.doc_id ? "Uploading..." : <><Upload className="w-3.5 h-3.5 mr-1.5" /> Re-upload</>}
+                             </Button>
+                           </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
@@ -235,7 +332,7 @@ export default function MemberLoanDashboard() {
                   <Label className="text-xs">Aadhaar Card Image</Label>
                   <Input 
                     type="file" 
-                    accept="image/*"
+                    accept=".jpg,.jpeg,.png"
                     onChange={e => setForm({...form, aadhar_image: e.target.files?.[0] || null})}
                     required
                   />
@@ -244,7 +341,7 @@ export default function MemberLoanDashboard() {
                   <Label className="text-xs">Bank Passbook (Front Page)</Label>
                   <Input 
                     type="file" 
-                    accept="image/*"
+                    accept=".jpg,.jpeg,.png"
                     onChange={e => setForm({...form, passbook_image: e.target.files?.[0] || null})}
                     required
                   />

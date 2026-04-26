@@ -40,6 +40,26 @@ export default function LeaderLoanApproval() {
     }
   }
 
+  async function handleVerifyDoc(docId: string, status: 'approved' | 'rejected' | 'request_reupload') {
+    let remarks = '';
+    if (status !== 'approved') {
+      const reason = window.prompt(`Enter reason to ${status} document:`);
+      if (reason === null) return;
+      remarks = reason;
+    }
+    
+    setProcessing(docId);
+    try {
+      await loanRequestsApi.verifyDocument(docId, { status, remarks });
+      toast.success(`Document marked as ${status}`);
+      loadPending();
+    } catch (err: any) {
+      toast.error(err.message || `Failed to update document status`);
+    } finally {
+      setProcessing(null);
+    }
+  }
+
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
@@ -99,7 +119,7 @@ export default function LeaderLoanApproval() {
                     <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Aadhaar Card Number</p>
                     <p className="text-sm font-mono font-medium tracking-widest text-[#6A1B9A]">{req.aadhar_number || 'N/A'}</p>
                   </div>
-                  
+
                   {/* Trust Score & Savings */}
                   <div className="col-span-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 p-3 rounded-xl flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0 border border-blue-100">
@@ -125,20 +145,59 @@ export default function LeaderLoanApproval() {
                   <p className="text-[11px] font-semibold text-muted-foreground uppercase mb-2">Attached Documents</p>
                   <div className="flex flex-wrap gap-2">
                     {req.documents && req.documents.length > 0 ? (
-                      req.documents.map((d: any) => {
+                      <div className="flex flex-col gap-3 w-full">
+                      {req.documents.map((d: any) => {
                         const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                        let extData = null;
+                        if (d.extracted_data) {
+                          try { extData = typeof d.extracted_data === 'string' ? JSON.parse(d.extracted_data) : d.extracted_data; } catch(e){}
+                        }
+
                         return (
-                          <a 
-                            key={d.doc_id} 
-                            href={`${baseUrl}${d.file_path}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-xs border px-3 py-2 rounded-lg bg-gray-50 flex items-center gap-2 text-[#C2185B] font-semibold hover:bg-rose-50 hover:border-rose-200 transition-colors cursor-pointer"
-                          >
-                            <FileText className="w-4 h-4 text-[#C2185B]" /> {d.document_type}
-                          </a>
+                          <div key={d.doc_id} className="border border-gray-200 rounded-xl p-3 bg-white shadow-sm flex flex-col gap-2">
+                            <div className="flex justify-between items-center flex-wrap gap-2">
+                              <a
+                                href={`${baseUrl}${d.file_path}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-[#C2185B] font-semibold hover:underline"
+                              >
+                                <img src={`${baseUrl}${d.file_path}`} alt="doc thumb" className="w-8 h-8 object-cover rounded opacity-80" onError={(e) => e.currentTarget.style.display='none'} />
+                                {d.document_type}
+                              </a>
+                              <div className="flex gap-2 items-center">
+                                {d.status === 'auto_verified' && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded uppercase font-bold">Auto Verified</span>}
+                                {d.status === 'flagged' && <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded uppercase font-bold">Flagged Mismatch</span>}
+                                {d.status === 'approved' && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded uppercase font-bold">Approved</span>}
+                                {d.status === 'rejected' && <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded uppercase font-bold">Rejected</span>}
+                                {d.status === 'request_reupload' && <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded uppercase font-bold">Re-upload Req</span>}
+                                {d.status === 'pending' && <span className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded uppercase font-bold">Pending Review</span>}
+                              </div>
+                            </div>
+
+                            {extData && (
+                              <div className="bg-gray-50 border border-gray-100 rounded p-2 text-xs grid grid-cols-2 gap-2 mt-1">
+                                {extData.aadhaar_number && <div><span className="text-gray-500 font-medium">Aadhaar:</span> XXXX XXXX {extData.aadhaar_number.slice(-4)}</div>}
+                                {extData.ifsc_code && <div><span className="text-gray-500 font-medium">IFSC:</span> {extData.ifsc_code}</div>}
+                                {extData.account_number && <div><span className="text-gray-500 font-medium">A/C:</span> {extData.account_number}</div>}
+                                {extData.matched_name && <div className="col-span-2"><span className="text-gray-500 font-medium">Name Match:</span> <span className="text-green-600 font-semibold">{extData.matched_name}</span></div>}
+                                {extData.flags && extData.flags.length > 0 && (
+                                  <div className="col-span-2 text-red-600 font-medium">
+                                    ⚠️ {extData.flags.join(", ")}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            <div className="flex gap-2 mt-2">
+                               <Button size="sm" variant="outline" className="h-7 text-[10px] py-0 bg-green-50 text-green-700 border-green-200 hover:bg-green-100" onClick={() => handleVerifyDoc(d.doc_id, 'approved')}>Approve</Button>
+                               <Button size="sm" variant="outline" className="h-7 text-[10px] py-0 bg-red-50 text-red-700 border-red-200 hover:bg-red-100" onClick={() => handleVerifyDoc(d.doc_id, 'rejected')}>Reject</Button>
+                               <Button size="sm" variant="outline" className="h-7 text-[10px] py-0 bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100" onClick={() => handleVerifyDoc(d.doc_id, 'request_reupload')}>Req Re-upload</Button>
+                            </div>
+                          </div>
                         );
-                      })
+                      })}
+                      </div>
                     ) : (
                       <span className="text-xs text-muted-foreground italic">Basic KYC verified automatically</span>
                     )}
@@ -147,7 +206,7 @@ export default function LeaderLoanApproval() {
 
                 {/* Actions */}
                 <div className="grid grid-cols-2 gap-3 mt-auto pt-4 border-t">
-                  <Button 
+                  <Button
                     variant="outline"
                     className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                     disabled={processing === req.loan_id}
@@ -155,7 +214,7 @@ export default function LeaderLoanApproval() {
                   >
                     <XCircle className="w-4 h-4 mr-1.5" /> Reject
                   </Button>
-                  <Button 
+                  <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white shadow-sm"
                     disabled={processing === req.loan_id}
                     onClick={() => handleApprove(req.loan_id, 'approved')}
