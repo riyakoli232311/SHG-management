@@ -22,7 +22,6 @@ const LANGUAGES = [
 ];
 
 const SUGGESTED_QUESTIONS = [
-  "What are our total savings this year?",
   "Which members have overdue EMIs?",
   "Show me all active loans",
   "How many members do we have?",
