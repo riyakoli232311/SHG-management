@@ -151,9 +151,9 @@ export default function MeetingAttendance() {
   if (!meetingId) {
     return (
       <DashboardLayout>
-        <div className="text-center py-16 text-muted-foreground">
+        <div className="text-center py-16 text-gray-400">
           <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="font-medium">Meeting ID is missing.</p>
+          <p className="font-medium text-white">Meeting ID is missing.</p>
           <Link to="/meetings" className="text-[#C2185B] hover:underline mt-2 inline-block">
             Go back to Meetings
           </Link>
@@ -168,7 +168,7 @@ export default function MeetingAttendance() {
       {/* Back */}
       <div className="mb-4">
         <Link to="/meetings"
-          className="text-sm text-gray-500 hover:text-[#C2185B] flex items-center gap-1 group w-fit">
+          className="text-sm text-gray-400 hover:text-[#C2185B] flex items-center gap-1 group w-fit">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Back to Meetings
         </Link>
@@ -177,11 +177,11 @@ export default function MeetingAttendance() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-white">
             {meeting?.agenda || "Meeting Attendance"}
           </h1>
           {meeting && (
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-sm text-gray-400 mt-0.5">
               {new Date(meeting.date).toLocaleDateString("en-IN", {
                 weekday: "long", day: "numeric", month: "long", year: "numeric",
               })}
@@ -214,15 +214,15 @@ export default function MeetingAttendance() {
               { icon: IndianRupee,  color: "#F57C00", label: "Total Fines",  value: `₹${totalFines}` },
               { icon: AlertCircle,  color: "#6A1B9A", label: "Unpaid Fines", value: `₹${unpaidFines}` },
             ].map(({ icon: Icon, color, label, value }) => (
-              <Card key={label} className="border-border/60 shadow-sm">
+              <Card key={label} className="bg-[#1E1E2F] border-[#C2185B]/20 shadow-md text-white">
                 <div className="flex items-center gap-3 p-4">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                     style={{ backgroundColor: `${color}15` }}>
                     <Icon className="w-4 h-4" style={{ color }} />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                    <p className="text-xl font-bold text-gray-900">{value}</p>
+                    <p className="text-xs text-gray-400">{label}</p>
+                    <p className="text-xl font-bold text-white">{value}</p>
                   </div>
                 </div>
               </Card>
@@ -231,14 +231,14 @@ export default function MeetingAttendance() {
 
           {/* Progress bar */}
           {rows.length > 0 && (
-            <div className="bg-white border border-border/60 rounded-xl px-4 py-3 mb-6 shadow-sm">
+            <div className="bg-[#1E1E2F] border border-[#C2185B]/20 rounded-xl px-4 py-3 mb-6 shadow-md text-white">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">Attendance progress</span>
+                <span className="text-gray-400">Attendance progress</span>
                 <span className="font-medium text-[#C2185B]">
                   {rows.length ? Math.round((presentCount / rows.length) * 100) : 0}%
                 </span>
               </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-2 bg-[#2A2A40] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-[#C2185B] to-[#6A1B9A] rounded-full transition-all duration-500"
                   style={{ width: `${rows.length ? (presentCount / rows.length) * 100 : 0}%` }}
@@ -249,12 +249,12 @@ export default function MeetingAttendance() {
 
           {/* Attendance Table */}
           {sortedRows.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground bg-white rounded-xl border border-dashed border-gray-300">
+            <div className="text-center py-16 text-gray-400 bg-[#1E1E2F] rounded-xl border border-dashed border-[#C2185B]/20">
               <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium">No members found for this SHG.</p>
+              <p className="font-medium text-white">No members found for this SHG.</p>
             </div>
           ) : (
-            <Card className="border-border/60 shadow-sm">
+            <Card className="bg-[#1E1E2F] border-[#C2185B]/20 shadow-md text-white">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#C2185B]" />
@@ -265,14 +265,14 @@ export default function MeetingAttendance() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b bg-gray-50 text-left">
-                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Member</th>
-                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground text-center">Present</th>
-                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Late (min)</th>
-                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Fine (₹)</th>
-                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Fine Status</th>
-                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Task Assigned</th>
-                        <th className="px-4 py-3 text-xs font-medium text-muted-foreground">Notes</th>
+                      <tr className="border-b bg-[#1A1A2E] text-left text-gray-300">
+                        <th className="px-4 py-3 text-xs font-medium text-gray-400">Member</th>
+                        <th className="px-4 py-3 text-xs font-medium text-gray-400 text-center">Present</th>
+                        <th className="px-4 py-3 text-xs font-medium text-gray-400">Late (min)</th>
+                        <th className="px-4 py-3 text-xs font-medium text-gray-400">Fine (₹)</th>
+                        <th className="px-4 py-3 text-xs font-medium text-gray-400">Fine Status</th>
+                        <th className="px-4 py-3 text-xs font-medium text-gray-400">Task Assigned</th>
+                        <th className="px-4 py-3 text-xs font-medium text-gray-400">Notes</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -280,21 +280,21 @@ export default function MeetingAttendance() {
                         <tr
                           key={row.member_id}
                           className={cn(
-                            "border-b transition-colors",
+                            "border-b border-[#2F2F45] transition-colors",
                             row.attended
-                              ? "hover:bg-green-50/30"
-                              : "bg-red-50/20 hover:bg-red-50/40"
+                              ? "hover:bg-[#1F2A3A]/60"
+                              : "bg-[#2A1E1E] hover:bg-[#3A2A2A]"
                           )}
                         >
                           {/* Member */}
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C2185B] to-[#6A1B9A] ring-2 ring-[#ffffff10] flex items-center justify-center text-white text-xs font-bold shrink-0">
                                 {row.member_name.charAt(0)}
                               </div>
                               <div>
-                                <p className="font-medium text-gray-900">{row.member_name}</p>
-                                <p className="text-xs text-muted-foreground capitalize">{row.member_role}</p>
+                                <p className="font-medium text-white">{row.member_name}</p>
+                                <p className="text-xs text-gray-400 capitalize">{row.member_role}</p>
                               </div>
                             </div>
                           </td>
@@ -306,8 +306,8 @@ export default function MeetingAttendance() {
                               className={cn(
                                 "w-9 h-9 rounded-full flex items-center justify-center transition-all mx-auto",
                                 row.attended
-                                  ? "bg-green-100 text-green-600 hover:bg-green-200"
-                                  : "bg-red-100 text-red-500 hover:bg-red-200"
+                                  ? "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                                  : "bg-red-500/20 text-red-400 hover:bg-red-500/30"
                               )}
                             >
                               {row.attended
@@ -326,7 +326,7 @@ export default function MeetingAttendance() {
                               onChange={e => setField(row.member_id, "late_minutes", Number(e.target.value))}
                               placeholder="0"
                               disabled={!row.attended}
-                              className="w-20 h-8 text-sm disabled:opacity-40"
+                              className="w-20 h-8 text-sm bg-[#2A2A40] border border-[#3A3A55] text-white placeholder:text-gray-400 focus:ring-1 focus:ring-[#C2185B] disabled:opacity-40 disabled:bg-[#232336]"
                             />
                           </td>
 
@@ -339,7 +339,7 @@ export default function MeetingAttendance() {
                               onChange={e => setField(row.member_id, "fine_amount", Number(e.target.value))}
                               placeholder="0"
                               disabled={row.attended}
-                              className="w-24 h-8 text-sm disabled:opacity-40"
+                              className="w-24 h-8 text-sm bg-[#2A2A40] border border-[#3A3A55] text-white placeholder:text-gray-400 focus:ring-1 focus:ring-[#C2185B] disabled:opacity-40 disabled:bg-[#232336]"
                             />
                           </td>
 
@@ -347,20 +347,20 @@ export default function MeetingAttendance() {
                           <td className="px-4 py-3">
                             {!row.attended && Number(row.fine_amount) > 0 ? (
                               row.fine_paid ? (
-                                <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                                <span className="inline-flex items-center gap-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full font-medium">
                                   <CheckCircle2 className="w-3 h-3" /> Paid
                                 </span>
                               ) : (
                                 <button
                                   onClick={() => row.id && markFinePaid(row.id, row.member_id)}
                                   disabled={!row.id || markingFine === row.member_id}
-                                  className="text-xs bg-amber-100 text-amber-700 hover:bg-amber-200 px-2 py-0.5 rounded-full font-medium transition-colors disabled:opacity-50"
+                                  className="text-xs bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 px-2 py-0.5 rounded-full font-medium transition-colors disabled:opacity-50"
                                 >
                                   {markingFine === row.member_id ? "..." : "Mark Paid"}
                                 </button>
                               )
                             ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
+                              <span className="text-xs text-gray-500">—</span>
                             )}
                           </td>
 
@@ -370,7 +370,7 @@ export default function MeetingAttendance() {
                               value={row.tasks_assigned}
                               onChange={e => setField(row.member_id, "tasks_assigned", e.target.value)}
                               placeholder="e.g. Bring passbook"
-                              className="w-44 h-8 text-sm"
+                              className="w-44 h-8 text-sm bg-[#2A2A40] border border-[#3A3A55] text-white placeholder:text-gray-400 focus:ring-1 focus:ring-[#C2185B]"
                             />
                           </td>
 
@@ -380,7 +380,7 @@ export default function MeetingAttendance() {
                               value={row.notes}
                               onChange={e => setField(row.member_id, "notes", e.target.value)}
                               placeholder="Optional note"
-                              className="w-44 h-8 text-sm"
+                              className="w-44 h-8 text-sm bg-[#2A2A40] border border-[#3A3A55] text-white placeholder:text-gray-400 focus:ring-1 focus:ring-[#C2185B]"
                             />
                           </td>
                         </tr>
@@ -390,8 +390,8 @@ export default function MeetingAttendance() {
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 py-3 bg-gray-50 border-t flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
+                <div className="px-4 py-3 bg-[#2A2A40] border-t border-[#C2185B]/20 flex items-center justify-between">
+                  <span className="text-sm text-gray-300">
                     {presentCount} present · {absentCount} absent
                   </span>
                   <Button
