@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { HeartHandshake, Eye, EyeOff } from "lucide-react";
+import { HeartHandshake, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import FeatureDeck from "@/components/FeatureDeck";
 
@@ -22,7 +22,7 @@ function DarkInput({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
 export default function Login() {
   const { login, memberLogin } = useAuth();
   const navigate = useNavigate();
-  const [role, setRole] = useState<"leader" | "member">("leader");
+  const [role, setRole] = useState<"leader" | "member" | "admin">("leader");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -34,10 +34,16 @@ export default function Login() {
     setLoading(true);
     try {
       if (role === "leader") { await login(email, password); navigate("/dashboard"); }
-      else { await memberLogin(name, password); navigate("/member/overview"); }
+      else if (role === "member") { await memberLogin(name, password); navigate("/member/overview"); }
     } catch (err: any) { toast.error(err.message || "Login failed"); }
     finally { setLoading(false); }
   }
+
+  const TABS = [
+    { key: "leader" as const,  label: "SHG Leader" },
+    { key: "member" as const,  label: "SHG Member" },
+    { key: "admin"  as const,  label: "Admin"       },
+  ];
 
   return (
     <div
@@ -105,79 +111,117 @@ export default function Login() {
 
             {/* Card header */}
             <div className="p-7 text-center"
-              style={{ background: "linear-gradient(135deg,#C2185B,#AD1457 50%,#6A1B9A)" }}>
+              style={{ background: role === "admin"
+                ? "linear-gradient(135deg,#1a237e,#283593 50%,#3949ab)"
+                : "linear-gradient(135deg,#C2185B,#AD1457 50%,#6A1B9A)" }}>
               <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-3 shadow-lg">
-                <HeartHandshake className="w-6 h-6 text-white" />
+                {role === "admin"
+                  ? <ShieldCheck className="w-6 h-6 text-white" />
+                  : <HeartHandshake className="w-6 h-6 text-white" />}
               </div>
               <h1 className="text-xl font-black text-white">Welcome Back</h1>
-              <p className="text-white/70 text-sm mt-0.5">Sign in to your account</p>
+              <p className="text-white/70 text-sm mt-0.5">
+                {role === "admin" ? "Admin Portal Access" : "Sign in to your account"}
+              </p>
             </div>
 
             <div className="p-7 space-y-5">
               {/* Role tabs */}
               <div className="flex p-1 rounded-xl gap-1" style={{ background: "rgba(255,255,255,0.05)" }}>
-                {(["leader", "member"] as const).map(r => (
+                {TABS.map(t => (
                   <button
-                    key={r}
-                    onClick={() => setRole(r)}
-                    className="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all"
+                    key={t.key}
+                    onClick={() => setRole(t.key)}
+                    className="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
                     style={{
-                      background: role === r ? "linear-gradient(135deg,#C2185B,#6A1B9A)" : "transparent",
-                      color: role === r ? "#fff" : "rgba(255,255,255,0.35)",
-                      boxShadow: role === r ? "0 0 16px rgba(194,24,91,0.3)" : "none",
+                      background: role === t.key
+                        ? t.key === "admin"
+                          ? "linear-gradient(135deg,#1a237e,#3949ab)"
+                          : "linear-gradient(135deg,#C2185B,#6A1B9A)"
+                        : "transparent",
+                      color: role === t.key ? "#fff" : "rgba(255,255,255,0.35)",
+                      boxShadow: role === t.key ? "0 0 16px rgba(194,24,91,0.3)" : "none",
                     }}
                   >
-                    {r === "leader" ? "SHG Leader" : "SHG Member"}
+                    {t.label}
                   </button>
                 ))}
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1.5">
-                    {role === "leader" ? "Email" : "Full Name"}
-                  </p>
-                  {role === "leader"
-                    ? <DarkInput type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
-                    : <DarkInput type="text" placeholder="Your Full Name" value={name} onChange={e => setName(e.target.value)} required />}
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1.5">Password</p>
-                  <div className="relative">
-                    <DarkInput
-                      type={showPw ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPw(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/60 transition-colors"
-                    >
-                      {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+              {/* Admin redirect panel */}
+              {role === "admin" ? (
+                <div className="space-y-4">
+                  <div className="rounded-xl p-4 text-center"
+                    style={{ background: "rgba(26,35,126,0.15)", border: "1px solid rgba(57,73,171,0.3)" }}>
+                    <ShieldCheck className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
+                    <p className="text-sm font-bold text-white mb-1">Admin Portal</p>
+                    <p className="text-xs text-white/40">
+                      Admin login is handled on a separate secure page for authorised district officers.
+                    </p>
                   </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 rounded-xl text-white font-black text-sm transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ background: "linear-gradient(135deg,#C2185B,#6A1B9A)", boxShadow: "0 0 20px rgba(194,24,91,0.3)" }}
-                >
-                  {loading ? "Signing in…" : "Sign In"}
-                </button>
-
-                <p className="text-center text-sm text-white/35">
-                  New to SakhiSahyog?{" "}
-                  <Link to="/signup" className="font-bold hover:underline" style={{ color: "#C2185B" }}>
-                    Create account
+                  <Link
+                    to="/admin/login"
+                    className="block w-full py-3 rounded-xl text-white font-black text-sm text-center transition-all hover:opacity-90"
+                    style={{ background: "linear-gradient(135deg,#1a237e,#3949ab)", boxShadow: "0 0 20px rgba(26,35,126,0.4)" }}
+                  >
+                    Go to Admin Login →
                   </Link>
-                </p>
-              </form>
+                  <Link
+                    to="/admin/signup"
+                    className="block w-full py-2.5 rounded-xl text-indigo-300 font-bold text-sm text-center transition-all hover:opacity-80"
+                    style={{ background: "rgba(26,35,126,0.1)", border: "1px solid rgba(57,73,171,0.25)" }}
+                  >
+                    Register as Admin
+                  </Link>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1.5">
+                      {role === "leader" ? "Email" : "Full Name"}
+                    </p>
+                    {role === "leader"
+                      ? <DarkInput type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
+                      : <DarkInput type="text" placeholder="Your Full Name" value={name} onChange={e => setName(e.target.value)} required />}
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1.5">Password</p>
+                    <div className="relative">
+                      <DarkInput
+                        type={showPw ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPw(v => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/60 transition-colors"
+                      >
+                        {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 rounded-xl text-white font-black text-sm transition-all hover:opacity-90 disabled:opacity-50"
+                    style={{ background: "linear-gradient(135deg,#C2185B,#6A1B9A)", boxShadow: "0 0 20px rgba(194,24,91,0.3)" }}
+                  >
+                    {loading ? "Signing in…" : "Sign In"}
+                  </button>
+
+                  <p className="text-center text-sm text-white/35">
+                    New to SakhiSahyog?{" "}
+                    <Link to="/signup" className="font-bold hover:underline" style={{ color: "#C2185B" }}>
+                      Create account
+                    </Link>
+                  </p>
+                </form>
+              )}
             </div>
           </div>
         </div>
