@@ -103,10 +103,24 @@ async def process_document(
                 extracted_data['dob'] = dob_match.group(2)
 
         elif document_type.lower() == 'bank passbook':
-            # Looking for IFSC like SBIN0001234 -> 4 chars, 0, 6 alphanumeric
-            ifsc_match = re.search(r'\b[A-Z]{4}0[A-Z0-9]{6}\b', full_text)
+            # Looking for IFSC like SBIN0001234 -> 4 alpha, '0', 6 alphanumeric (11 chars total)
+            # Strategy 1: labeled context (e.g., "IFSC : SBIN0001234" or "IFSC CODE SBIN0001234")
+            ifsc_match = re.search(
+                r'IFSC\s*(?:CODE\s*)?[:\-]?\s*([A-Z]{4}[0O][A-Z0-9]{6})',
+                full_text
+            )
+            # Strategy 2: general pattern without \b (which fails near colons/hyphens)
+            if not ifsc_match:
+                ifsc_match = re.search(
+                    r'(?<![A-Z0-9])([A-Z]{4}[0O][A-Z0-9]{6})(?![A-Z0-9])',
+                    full_text
+                )
+
             if ifsc_match:
-                extracted_data['ifsc_code'] = ifsc_match.group()
+                # Normalize: OCR may read '0' (zero) as 'O' (letter) at position 5
+                raw_ifsc = ifsc_match.group(1) if ifsc_match.lastindex else ifsc_match.group()
+                ifsc_normalized = raw_ifsc[:4] + '0' + raw_ifsc[5:]  # force position 5 to be '0'
+                extracted_data['ifsc_code'] = ifsc_normalized
             else:
                 flags.append("Could not find a valid IFSC code format.")
                 status = "flagged"
