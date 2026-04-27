@@ -111,9 +111,7 @@ export default function Login() {
 
             {/* Card header */}
             <div className="p-7 text-center"
-              style={{ background: role === "admin"
-                ? "linear-gradient(135deg,#1a237e,#283593 50%,#3949ab)"
-                : "linear-gradient(135deg,#C2185B,#AD1457 50%,#6A1B9A)" }}>
+              style={{ background: "linear-gradient(135deg,#C2185B,#AD1457 50%,#6A1B9A)" }}>
               <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-3 shadow-lg">
                 {role === "admin"
                   ? <ShieldCheck className="w-6 h-6 text-white" />
@@ -135,9 +133,7 @@ export default function Login() {
                     className="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
                     style={{
                       background: role === t.key
-                        ? t.key === "admin"
-                          ? "linear-gradient(135deg,#1a237e,#3949ab)"
-                          : "linear-gradient(135deg,#C2185B,#6A1B9A)"
+                        ? "linear-gradient(135deg,#C2185B,#6A1B9A)"
                         : "transparent",
                       color: role === t.key ? "#fff" : "rgba(255,255,255,0.35)",
                       boxShadow: role === t.key ? "0 0 16px rgba(194,24,91,0.3)" : "none",
@@ -152,8 +148,8 @@ export default function Login() {
               {role === "admin" ? (
                 <div className="space-y-4">
                   <div className="rounded-xl p-4 text-center"
-                    style={{ background: "rgba(26,35,126,0.15)", border: "1px solid rgba(57,73,171,0.3)" }}>
-                    <ShieldCheck className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
+                    style={{ background: "rgba(194,24,91,0.1)", border: "1px solid rgba(194,24,91,0.25)" }}>
+                    <ShieldCheck className="w-8 h-8 mx-auto mb-2" style={{ color: "#C2185B" }} />
                     <p className="text-sm font-bold text-white mb-1">Admin Portal</p>
                     <p className="text-xs text-white/40">
                       Admin login is handled on a separate secure page for authorised district officers.
@@ -162,14 +158,14 @@ export default function Login() {
                   <Link
                     to="/admin/login"
                     className="block w-full py-3 rounded-xl text-white font-black text-sm text-center transition-all hover:opacity-90"
-                    style={{ background: "linear-gradient(135deg,#1a237e,#3949ab)", boxShadow: "0 0 20px rgba(26,35,126,0.4)" }}
+                    style={{ background: "linear-gradient(135deg,#C2185B,#6A1B9A)", boxShadow: "0 0 20px rgba(194,24,91,0.3)" }}
                   >
                     Go to Admin Login →
                   </Link>
                   <Link
-                    to="/admin/signup"
-                    className="block w-full py-2.5 rounded-xl text-indigo-300 font-bold text-sm text-center transition-all hover:opacity-80"
-                    style={{ background: "rgba(26,35,126,0.1)", border: "1px solid rgba(57,73,171,0.25)" }}
+                    to="/admin/login"
+                    className="block w-full py-2.5 rounded-xl font-bold text-sm text-center transition-all hover:opacity-80"
+                    style={{ background: "rgba(194,24,91,0.08)", border: "1px solid rgba(194,24,91,0.2)", color: "#e57fa8" }}
                   >
                     Register as Admin
                   </Link>
