@@ -173,7 +173,7 @@ router.post('/apply', requireAuth, (req, res, next) => {
             form.append('document_type', doc.type);
             form.append('member_name', member.name);
 
-            const pyRes = await axios.post('http://127.0.0.1:8000/process-document', form, {
+            const pyRes = await axios.post('https://shg-management-ocr-service.onrender.com/', form, {
               headers: { ...form.getHeaders() },
               timeout: 10000 // 10 seconds timeout for OCR
             });
@@ -373,7 +373,7 @@ router.post('/document/:doc_id/reupload', requireAuth, singleUpload, async (req,
       form.append('document_type', doc.document_type);
       form.append('member_name', member ? member.name : '');
 
-      const pyRes = await axios.post('http://127.0.0.1:8000/process-document', form, {
+      const pyRes = await axios.post('https://shg-management-ocr-service.onrender.com/', form, {
         headers: { ...form.getHeaders() },
         timeout: 10000
       });
