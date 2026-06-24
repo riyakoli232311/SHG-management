@@ -157,7 +157,7 @@ export default function LeaderLoanApproval() {
                       <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-2">Attached Documents</p>
                       <div className="flex flex-col gap-2">
                         {req.documents.map((d: any) => {
-                          const base = import.meta.env.VITE_API_URL || "http://localhost:3001";
+                          const base = import.meta.env.VITE_API_URL;
                           let ext = null;
                           if (d.extracted_data) {
                             try { ext = typeof d.extracted_data === "string" ? JSON.parse(d.extracted_data) : d.extracted_data; } catch {}

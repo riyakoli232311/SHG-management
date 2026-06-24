@@ -3,7 +3,7 @@
 // Centralised API client — replaces all mock data imports.
 // All requests include credentials (cookies) automatically.
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 async function request<T>(
   method: string,

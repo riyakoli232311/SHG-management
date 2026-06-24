@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { shgApi } from "@/lib/api";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 interface Message { role: "user" | "assistant"; content: string; }
 
