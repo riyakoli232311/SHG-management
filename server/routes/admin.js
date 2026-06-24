@@ -8,13 +8,13 @@ import bcrypt from 'bcryptjs';
 const router = express.Router();
 const ADMIN_COOKIE_NAME = 'admin_session';
 
-export function setAdminSessionCookie(res, token) {
-  res.cookie(ADMIN_COOKIE_NAME, token, {
+export function setSessionCookie(res, token) {
+  res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
-    path: '/',
+    secure: true,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: "/",
   });
 }
 
